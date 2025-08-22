@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Database
+  db:
+    image: postgres:16-alpine
+    container_name: forzani-db
+    environment:
+      POSTGRES_DB: forzani_tickets
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d forzani_tickets"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forzani-network
+
+  # API Backend
+  api:
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.api.simple
+    container_name: forzani-api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/forzani_tickets
+      JWT_SECRET: changeme-in-production
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PORT: 3001
+      NODE_ENV: development
+      UPLOAD_DIR: ./uploads
+      MAX_FILE_SIZE: 10485760
+      LOG_LEVEL: info
+    ports:
+      - "3001:3001"
+    volumes:
+      - api_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - forzani-network
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+
+  # Web Frontend
+  web:
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.web.simple
+    container_name: forzani-web
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - forzani-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  api_uploads:
+
+networks:
+  forzani-network:
+    driver: bridge
