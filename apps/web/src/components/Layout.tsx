@@ -20,7 +20,7 @@ const Layout: React.FC = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold">Forzani Tickets</h1>
+            <h1 className="text-xl font-bold">Empresa Tickets</h1>
             <nav className="flex items-center space-x-4">
               <Link
                 to="/"

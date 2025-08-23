@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { logger } from "./logger";
 import { v4 as uuidv4 } from "uuid";
 
@@ -7,7 +7,12 @@ export class ApiError extends Error {
   public readonly statusCode: number;
   public readonly details?: any;
 
-  constructor(code: string, message: string, statusCode: number = 500, details?: any) {
+  constructor(
+    code: string,
+    message: string,
+    statusCode: number = 500,
+    details?: any,
+  ) {
     super(message);
     this.code = code;
     this.statusCode = statusCode;
@@ -16,14 +21,9 @@ export class ApiError extends Error {
   }
 }
 
-export const errorHandler = (
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const requestId = req.headers["x-request-id"] as string || uuidv4();
-  
+export const errorHandler = (error: Error, req: Request, res: Response) => {
+  const requestId = (req.headers["x-request-id"] as string) || uuidv4();
+
   if (error instanceof ApiError) {
     logger.warn({
       requestId,
@@ -66,8 +66,8 @@ export const errorHandler = (
 };
 
 export const notFoundHandler = (req: Request, res: Response) => {
-  const requestId = req.headers["x-request-id"] as string || uuidv4();
-  
+  const requestId = (req.headers["x-request-id"] as string) || uuidv4();
+
   logger.warn({
     requestId,
     error: "NOT_FOUND",

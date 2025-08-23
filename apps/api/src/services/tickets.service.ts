@@ -1,11 +1,17 @@
 import { prisma } from "../lib/database";
 import { ApiError } from "../lib/errors";
 import { logger } from "../lib/logger";
-import { TicketStatus, TicketPriority, UserRole } from "@forzani/types";
+import { UserRole } from "@prisma/client";
 import { TicketFilters } from "../validations/tickets";
 
+type StatusLiteral = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+
 export class TicketsService {
-  static async getTickets(filters: TicketFilters, userId: string, userRole: UserRole) {
+  static async getTickets(
+    filters: TicketFilters,
+    userId: string,
+    userRole: UserRole,
+  ) {
     const {
       q,
       status,
@@ -107,7 +113,11 @@ export class TicketsService {
 
     // Check permissions
     if (userRole === UserRole.USER && ticket.requesterId !== userId) {
-      throw new ApiError("FORBIDDEN", "No tienes permisos para ver este ticket", 403);
+      throw new ApiError(
+        "FORBIDDEN",
+        "No tienes permisos para ver este ticket",
+        403,
+      );
     }
 
     return ticket;
@@ -136,7 +146,7 @@ export class TicketsService {
     id: string,
     data: any,
     userId: string,
-    userRole: UserRole
+    userRole: UserRole,
   ) {
     const ticket = await prisma.ticket.findUnique({
       where: { id },
@@ -150,26 +160,43 @@ export class TicketsService {
     // Check permissions
     if (userRole === UserRole.USER) {
       if (ticket.requesterId !== userId) {
-        throw new ApiError("FORBIDDEN", "No tienes permisos para editar este ticket", 403);
+        throw new ApiError(
+          "FORBIDDEN",
+          "No tienes permisos para editar este ticket",
+          403,
+        );
       }
       // Users can only update title and description
-      const { title, description, ...rest } = data;
+      const rest = { ...data } as Record<string, unknown>;
+      delete rest.title;
+      delete rest.description;
       if (Object.keys(rest).length > 0) {
-        throw new ApiError("FORBIDDEN", "No tienes permisos para modificar estos campos", 403);
+        throw new ApiError(
+          "FORBIDDEN",
+          "No tienes permisos para modificar estos campos",
+          403,
+        );
       }
     }
 
     // Validate status transitions
     if (data.status && data.status !== ticket.status) {
-      const validTransitions = this.getValidStatusTransitions(ticket.status, userRole);
+      const validTransitions = this.getValidStatusTransitions(
+        ticket.status,
+        userRole,
+      );
       if (!validTransitions.includes(data.status)) {
-        throw new ApiError("INVALID_STATUS", "Transición de estado no válida", 400);
+        throw new ApiError(
+          "INVALID_STATUS",
+          "Transición de estado no válida",
+          400,
+        );
       }
 
       // Set closedAt when status is CLOSED
-      if (data.status === TicketStatus.CLOSED) {
+      if (data.status === "CLOSED") {
         data.closedAt = new Date();
-      } else if (ticket.status === TicketStatus.CLOSED && data.status !== TicketStatus.CLOSED) {
+      } else if (ticket.status === "CLOSED" && data.status !== "CLOSED") {
         data.closedAt = null;
       }
     }
@@ -193,7 +220,11 @@ export class TicketsService {
 
   static async deleteTicket(id: string, userRole: UserRole) {
     if (userRole !== UserRole.ADMIN) {
-      throw new ApiError("FORBIDDEN", "Solo los administradores pueden eliminar tickets", 403);
+      throw new ApiError(
+        "FORBIDDEN",
+        "Solo los administradores pueden eliminar tickets",
+        403,
+      );
     }
 
     const ticket = await prisma.ticket.findUnique({ where: { id } });
@@ -205,19 +236,22 @@ export class TicketsService {
     logger.info(`Ticket deleted: ${id}`);
   }
 
-  private static getValidStatusTransitions(currentStatus: TicketStatus, userRole: UserRole): TicketStatus[] {
-    const transitions: Record<TicketStatus, TicketStatus[]> = {
-      [TicketStatus.OPEN]: [TicketStatus.IN_PROGRESS],
-      [TicketStatus.IN_PROGRESS]: [TicketStatus.RESOLVED],
-      [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.OPEN],
-      [TicketStatus.CLOSED]: [TicketStatus.OPEN],
+  private static getValidStatusTransitions(
+    currentStatus: StatusLiteral,
+    userRole: UserRole,
+  ): StatusLiteral[] {
+    const transitions: Record<StatusLiteral, StatusLiteral[]> = {
+      OPEN: ["IN_PROGRESS"],
+      IN_PROGRESS: ["RESOLVED"],
+      RESOLVED: ["CLOSED", "OPEN"],
+      CLOSED: ["OPEN"],
     };
 
     const validTransitions = transitions[currentStatus] || [];
-    
+
     // Only AGENT and ADMIN can reopen tickets
-    if (currentStatus === TicketStatus.CLOSED && userRole === UserRole.USER) {
-      return validTransitions.filter(status => status !== TicketStatus.OPEN);
+    if (currentStatus === "CLOSED" && userRole === UserRole.USER) {
+      return validTransitions.filter((status) => status !== "OPEN");
     }
 
     return validTransitions;

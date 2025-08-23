@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { logger } from "../lib/logger";
 import { ApiError } from "../lib/errors";
-import { UserRole } from "@forzani/types";
+import { UserRole } from "@prisma/client";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -13,16 +13,20 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new ApiError("UNAUTHORIZED", "Token de acceso requerido", 401);
     }
 
     const token = authHeader.substring(7);
-    
+
     const decoded = jwt.verify(token, config.jwt.secret) as {
       id: string;
       email: string;
@@ -48,7 +52,9 @@ export const requireRole = (roles: UserRole[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      logger.warn(`User ${req.user.email} attempted to access restricted endpoint`);
+      logger.warn(
+        `User ${req.user.email} attempted to access restricted endpoint`,
+      );
       return next(new ApiError("FORBIDDEN", "Permisos insuficientes", 403));
     }
 

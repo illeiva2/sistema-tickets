@@ -9,18 +9,21 @@ import { requestIdMiddleware } from "./middleware/requestId";
 import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
-import { UserRole } from "@forzani/types";
+import { UserRole } from "@prisma/client";
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.NODE_ENV === "production" 
-    ? ["https://yourdomain.com"] 
-    : ["http://localhost:5173", "http://localhost:3000"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? ["https://yourdomain.com"]
+        : ["http://localhost:5173", "http://localhost:3000"],
+    credentials: true,
+  }),
+);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -56,18 +59,29 @@ app.get("/health", (req, res) => {
 });
 
 // API Routes
-app.use("/api/auth", express.Router()
-  .post("/login", ...AuthController.login)
-  .post("/refresh", ...AuthController.refreshToken)
-  .get("/me", authMiddleware, AuthController.me)
+app.use(
+  "/api/auth",
+  express
+    .Router()
+    .post("/login", ...AuthController.login)
+    .post("/refresh", ...AuthController.refreshToken)
+    .get("/me", authMiddleware, AuthController.me),
 );
 
-app.use("/api/tickets", express.Router()
-  .get("/", authMiddleware, ...TicketsController.getTickets)
-  .get("/:id", authMiddleware, TicketsController.getTicketById)
-  .post("/", authMiddleware, ...TicketsController.createTicket)
-  .patch("/:id", authMiddleware, ...TicketsController.updateTicket)
-  .delete("/:id", authMiddleware, requireRole([UserRole.ADMIN]), TicketsController.deleteTicket)
+app.use(
+  "/api/tickets",
+  express
+    .Router()
+    .get("/", authMiddleware, ...TicketsController.getTickets)
+    .get("/:id", authMiddleware, TicketsController.getTicketById)
+    .post("/", authMiddleware, ...TicketsController.createTicket)
+    .patch("/:id", authMiddleware, ...TicketsController.updateTicket)
+    .delete(
+      "/:id",
+      authMiddleware,
+      requireRole([UserRole.ADMIN]),
+      TicketsController.deleteTicket,
+    ),
 );
 
 // 404 handler

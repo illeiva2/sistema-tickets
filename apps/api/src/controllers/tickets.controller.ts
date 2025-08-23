@@ -1,7 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { TicketsService } from "../services/tickets.service";
 import { AuthenticatedRequest } from "../middleware/auth";
-import { createTicketSchema, updateTicketSchema, ticketFiltersSchema } from "../validations/tickets";
+import {
+  createTicketSchema,
+  updateTicketSchema,
+  ticketFiltersSchema,
+} from "../validations/tickets";
 import { validate } from "../middleware/validation";
 import { z } from "zod";
 
@@ -20,7 +24,7 @@ export class TicketsController {
         const result = await TicketsService.getTickets(
           req.query as any,
           req.user.id,
-          req.user.role
+          req.user.role,
         );
 
         res.json({
@@ -33,7 +37,11 @@ export class TicketsController {
     },
   ];
 
-  static getTicketById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  static getTicketById = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -43,7 +51,11 @@ export class TicketsController {
       }
 
       const { id } = req.params;
-      const ticket = await TicketsService.getTicketById(id, req.user.id, req.user.role);
+      const ticket = await TicketsService.getTicketById(
+        id,
+        req.user.id,
+        req.user.role,
+      );
 
       res.json({
         success: true,
@@ -93,7 +105,7 @@ export class TicketsController {
           id,
           req.body,
           req.user.id,
-          req.user.role
+          req.user.role,
         );
 
         res.json({
@@ -106,7 +118,11 @@ export class TicketsController {
     },
   ];
 
-  static deleteTicket = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  static deleteTicket = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       if (!req.user) {
         return res.status(401).json({

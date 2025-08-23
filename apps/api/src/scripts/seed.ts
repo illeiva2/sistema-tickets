@@ -1,4 +1,9 @@
-import { PrismaClient, UserRole, TicketStatus, TicketPriority } from "@prisma/client";
+import {
+  PrismaClient,
+  UserRole,
+  TicketStatus,
+  TicketPriority,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { logger } from "../lib/logger";
 
@@ -19,9 +24,9 @@ async function main() {
   // Create users
   const passwordHash = await bcrypt.hash("password123", 12);
 
-  const admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
-      email: "admin@forzani.com",
+      email: "admin@empresa.com",
       name: "Administrador",
       passwordHash,
       role: UserRole.ADMIN,
@@ -30,7 +35,7 @@ async function main() {
 
   const agent1 = await prisma.user.create({
     data: {
-      email: "agent1@forzani.com",
+      email: "agent1@empresa.com",
       name: "Agente 1",
       passwordHash,
       role: UserRole.AGENT,
@@ -39,7 +44,7 @@ async function main() {
 
   const agent2 = await prisma.user.create({
     data: {
-      email: "agent2@forzani.com",
+      email: "agent2@empresa.com",
       name: "Agente 2",
       passwordHash,
       role: UserRole.AGENT,
@@ -49,7 +54,7 @@ async function main() {
   const users = await Promise.all([
     prisma.user.create({
       data: {
-        email: "user1@forzani.com",
+        email: "user1@empresa.com",
         name: "Usuario 1",
         passwordHash,
         role: UserRole.USER,
@@ -57,7 +62,7 @@ async function main() {
     }),
     prisma.user.create({
       data: {
-        email: "user2@forzani.com",
+        email: "user2@empresa.com",
         name: "Usuario 2",
         passwordHash,
         role: UserRole.USER,
@@ -65,7 +70,7 @@ async function main() {
     }),
     prisma.user.create({
       data: {
-        email: "user3@forzani.com",
+        email: "user3@empresa.com",
         name: "Usuario 3",
         passwordHash,
         role: UserRole.USER,
@@ -73,7 +78,7 @@ async function main() {
     }),
     prisma.user.create({
       data: {
-        email: "user4@forzani.com",
+        email: "user4@empresa.com",
         name: "Usuario 4",
         passwordHash,
         role: UserRole.USER,
@@ -81,7 +86,7 @@ async function main() {
     }),
     prisma.user.create({
       data: {
-        email: "user5@forzani.com",
+        email: "user5@empresa.com",
         name: "Usuario 5",
         passwordHash,
         role: UserRole.USER,
@@ -95,14 +100,16 @@ async function main() {
   const ticketData = [
     {
       title: "Error al iniciar sesión",
-      description: "No puedo acceder a mi cuenta desde ayer. Aparece un error de credenciales inválidas.",
+      description:
+        "No puedo acceder a mi cuenta desde ayer. Aparece un error de credenciales inválidas.",
       priority: TicketPriority.HIGH,
       status: TicketStatus.OPEN,
       requesterId: users[0].id,
     },
     {
       title: "Problema con la impresora",
-      description: "La impresora del departamento de contabilidad no está funcionando correctamente.",
+      description:
+        "La impresora del departamento de contabilidad no está funcionando correctamente.",
       priority: TicketPriority.MEDIUM,
       status: TicketStatus.IN_PROGRESS,
       requesterId: users[1].id,
@@ -110,7 +117,8 @@ async function main() {
     },
     {
       title: "Solicitud de nuevo software",
-      description: "Necesitamos instalar Adobe Photoshop en las computadoras del área de diseño.",
+      description:
+        "Necesitamos instalar Adobe Photoshop en las computadoras del área de diseño.",
       priority: TicketPriority.LOW,
       status: TicketStatus.RESOLVED,
       requesterId: users[2].id,
@@ -142,7 +150,8 @@ async function main() {
     },
     {
       title: "Problema con el proyector",
-      description: "El proyector de la sala de conferencias no se conecta correctamente.",
+      description:
+        "El proyector de la sala de conferencias no se conecta correctamente.",
       priority: TicketPriority.MEDIUM,
       status: TicketStatus.RESOLVED,
       requesterId: users[1].id,
@@ -159,7 +168,8 @@ async function main() {
     },
     {
       title: "Error en el sistema de facturación",
-      description: "El sistema de facturación no está generando las facturas correctamente.",
+      description:
+        "El sistema de facturación no está generando las facturas correctamente.",
       priority: TicketPriority.URGENT,
       status: TicketStatus.OPEN,
       requesterId: users[3].id,
@@ -206,7 +216,8 @@ async function main() {
     },
     {
       title: "Solicitud de capacitación",
-      description: "Necesito capacitación sobre el nuevo sistema de inventarios.",
+      description:
+        "Necesito capacitación sobre el nuevo sistema de inventarios.",
       priority: TicketPriority.LOW,
       status: TicketStatus.RESOLVED,
       requesterId: users[4].id,
@@ -215,7 +226,7 @@ async function main() {
   ];
 
   const tickets = await Promise.all(
-    ticketData.map((data) => prisma.ticket.create({ data }))
+    ticketData.map((data) => prisma.ticket.create({ data })),
   );
 
   logger.info("🎫 Created tickets");
@@ -225,7 +236,8 @@ async function main() {
     {
       ticketId: tickets[1].id,
       authorId: agent1.id,
-      message: "He revisado el problema. Parece ser un problema de drivers. Voy a actualizarlos.",
+      message:
+        "He revisado el problema. Parece ser un problema de drivers. Voy a actualizarlos.",
     },
     {
       ticketId: tickets[1].id,
@@ -235,7 +247,8 @@ async function main() {
     {
       ticketId: tickets[2].id,
       authorId: agent2.id,
-      message: "Software instalado correctamente. Por favor, reinicia tu computadora.",
+      message:
+        "Software instalado correctamente. Por favor, reinicia tu computadora.",
     },
     {
       ticketId: tickets[2].id,
@@ -289,9 +302,7 @@ async function main() {
     },
   ];
 
-  await Promise.all(
-    commentData.map((data) => prisma.comment.create({ data }))
-  );
+  await Promise.all(commentData.map((data) => prisma.comment.create({ data })));
 
   logger.info("💬 Created comments");
 
@@ -321,21 +332,21 @@ async function main() {
   ];
 
   await Promise.all(
-    auditLogData.map((data) => prisma.auditLog.create({ data }))
+    auditLogData.map((data) => prisma.auditLog.create({ data })),
   );
 
   logger.info("📝 Created audit logs");
 
   logger.info("✅ Database seeding completed successfully!");
   logger.info("📋 Credentials:");
-  logger.info(`   Admin: admin@forzani.com / password123`);
-  logger.info(`   Agent 1: agent1@forzani.com / password123`);
-  logger.info(`   Agent 2: agent2@forzani.com / password123`);
-  logger.info(`   User 1: user1@forzani.com / password123`);
-  logger.info(`   User 2: user2@forzani.com / password123`);
-  logger.info(`   User 3: user3@forzani.com / password123`);
-  logger.info(`   User 4: user4@forzani.com / password123`);
-  logger.info(`   User 5: user5@forzani.com / password123`);
+  logger.info(`   Admin: admin@empresa.com / password123`);
+  logger.info(`   Agent 1: agent1@empresa.com / password123`);
+  logger.info(`   Agent 2: agent2@empresa.com / password123`);
+  logger.info(`   User 1: user1@empresa.com / password123`);
+  logger.info(`   User 2: user2@empresa.com / password123`);
+  logger.info(`   User 3: user3@empresa.com / password123`);
+  logger.info(`   User 4: user4@empresa.com / password123`);
+  logger.info(`   User 5: user5@empresa.com / password123`);
 }
 
 main()

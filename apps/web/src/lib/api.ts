@@ -1,7 +1,7 @@
 import axios from "axios";
-import { ApiResponse } from "@forzani/types";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL =
+  (import.meta as any).env?.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -53,7 +53,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

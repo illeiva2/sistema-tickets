@@ -1,11 +1,11 @@
-# Forzani Tickets - Sistema de Gestión de Tickets
+# Empresa Tickets - Sistema de Gestión de Tickets
 
 Un sistema completo de gestión de tickets (Help Desk) construido con un monorepo Turborepo, incluyendo backend API, frontend web y componentes compartidos.
 
 ## 🏗️ Arquitectura
 
 ```
-forzani-tickets/
+empresa-tickets/
 ├── apps/
 │   ├── api/          # Backend API (Node.js + Express + TypeScript)
 │   └── web/          # Frontend (React + Vite + TypeScript)
@@ -59,7 +59,7 @@ forzani-tickets/
 
 ```bash
 git clone <repository-url>
-cd forzani-tickets
+cd empresa-tickets
 ```
 
 ### 2. Instalar dependencias
@@ -174,20 +174,20 @@ Después de ejecutar `pnpm seed`, puedes usar estas credenciales:
 
 ### Administradores
 
-- **admin@forzani.com** / password123
+- **admin@empresa.com** / password123
 
 ### Agentes
 
-- **agent1@forzani.com** / password123
-- **agent2@forzani.com** / password123
+- **agent1@empresa.com** / password123
+- **agent2@empresa.com** / password123
 
 ### Usuarios
 
-- **user1@forzani.com** / password123
-- **user2@forzani.com** / password123
-- **user3@forzani.com** / password123
-- **user4@forzani.com** / password123
-- **user5@forzani.com** / password123
+- **user1@empresa.com** / password123
+- **user2@empresa.com** / password123
+- **user3@empresa.com** / password123
+- **user4@empresa.com** / password123
+- **user5@empresa.com** / password123
 
 ## 📚 Scripts disponibles
 
@@ -379,8 +379,8 @@ pnpm --filter @forzani/web build
 
 ```bash
 # Construir imágenes de producción
-docker build -f infra/docker/Dockerfile.api -t forzani-api .
-docker build -f infra/docker/Dockerfile.web -t forzani-web .
+docker build -f infra/docker/Dockerfile.api -t empresa-api .
+docker build -f infra/docker/Dockerfile.web -t empresa-web .
 
 # Ejecutar en producción
 docker-compose -f infra/docker/docker-compose.prod.yml up -d
@@ -490,4 +490,4 @@ Si tienes problemas o preguntas:
 
 ---
 
-**Forzani Tickets** - Sistema de gestión de tickets moderno y escalable 🎫
+**Empresa Tickets** - Sistema de gestión de tickets moderno y escalable 🎫

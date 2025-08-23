@@ -1,10 +1,9 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { prisma } from "../lib/database";
 import { config } from "../config";
 import { ApiError } from "../lib/errors";
 import { logger } from "../lib/logger";
-import { UserRole } from "@forzani/types";
 
 export class AuthService {
   static async login(email: string, password: string) {
@@ -24,13 +23,13 @@ export class AuthService {
     const accessToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
+      { expiresIn: config.jwt.expiresIn } as SignOptions,
     );
 
     const refreshToken = jwt.sign(
       { id: user.id, type: "refresh" },
       config.jwt.secret,
-      { expiresIn: config.jwt.refreshExpiresIn }
+      { expiresIn: config.jwt.refreshExpiresIn } as SignOptions,
     );
 
     logger.info(`User ${user.email} logged in successfully`);
@@ -71,7 +70,7 @@ export class AuthService {
       const newAccessToken = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn }
+        { expiresIn: config.jwt.expiresIn } as SignOptions,
       );
 
       return {

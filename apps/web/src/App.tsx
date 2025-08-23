@@ -1,4 +1,4 @@
-import React from "react";
+// React 18 with jsx:react-jsx doesn't require explicit import
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";

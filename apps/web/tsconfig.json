@@ -1,5 +1,5 @@
 {
-  "extends": "@forzani/config/typescript-preset.json",
+  "extends": "../../packages/config/typescript-preset.json",
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
