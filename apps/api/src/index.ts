@@ -10,6 +10,9 @@ import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
 import { CommentsController } from "./controllers/comments.controller";
 import { UsersController } from "./controllers/users.controller";
+import multer from "multer";
+import path from "path";
+import AttachmentsController from "./controllers/attachments.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
 // Using literal role strings to avoid enum import issues in some environments
 
@@ -55,6 +58,8 @@ if (config.server.nodeEnv === "production") {
 // Request parsing
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+// Static uploads
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Request ID middleware
 app.use(requestIdMiddleware);
@@ -102,6 +107,25 @@ app.use(
 app.use(
   "/api/users",
   express.Router().get("/agents", authMiddleware, UsersController.listAgents),
+);
+
+// Attachments routes
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+app.use(
+  "/api/attachments",
+  express
+    .Router()
+    .get("/:ticketId", authMiddleware, ...AttachmentsController.list)
+    .post(
+      "/:ticketId",
+      authMiddleware,
+      upload.single("file"),
+      AttachmentsController.upload,
+    )
+    .delete("/:id", authMiddleware, AttachmentsController.remove),
 );
 
 // 404 handler
