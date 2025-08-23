@@ -3,10 +3,11 @@ import { AuthService } from "../services/auth.service";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { loginSchema, refreshTokenSchema } from "../validations/auth";
 import { validate } from "../middleware/validation";
+import { z } from "zod";
 
 export class AuthController {
   static login = [
-    validate(loginSchema),
+    validate(z.object({ body: loginSchema })),
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const { email, password } = req.body;
@@ -23,7 +24,7 @@ export class AuthController {
   ];
 
   static refreshToken = [
-    validate(refreshTokenSchema),
+    validate(z.object({ body: refreshTokenSchema })),
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const { refreshToken } = req.body;
