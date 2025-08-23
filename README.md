@@ -491,3 +491,16 @@ Si tienes problemas o preguntas:
 ---
 
 **Empresa Tickets** - Sistema de gestión de tickets moderno y escalable 🎫
+
+## Gestión de Roadmap & Backlog (GitHub Projects)
+
+- Project: “Forzani Tickets — Roadmap & Backlog” (repo-scoped)
+- Si no existe aún por permisos, puedes crearlo con:
+
+```bash
+chmod +x infra/create-project.sh
+GITHUB_REPO=owner/repo ./infra/create-project.sh
+```
+
+- Configuración exportable: `infra/github-projects-setup.json`
+- Documentación: `review-output/github-project-setup.md`
