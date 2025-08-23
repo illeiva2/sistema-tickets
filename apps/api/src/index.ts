@@ -8,6 +8,7 @@ import { errorHandler, notFoundHandler } from "./lib/errors";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
+import { CommentsController } from "./controllers/comments.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
 // Using literal role strings to avoid enum import issues in some environments
 
@@ -20,24 +21,35 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? ["https://yourdomain.com"]
-        : ["http://localhost:5173", "http://localhost:3000"],
+        : [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+            "http://192.168.176.1:5173",
+            "http://192.168.1.127:5173",
+            "http://172.19.160.1:5173",
+          ],
     credentials: true,
   }),
 );
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    success: false,
-    error: {
-      code: "RATE_LIMIT_EXCEEDED",
-      message: "Demasiadas solicitudes, intenta de nuevo más tarde",
+// Rate limiting (solo en producción)
+if (config.server.nodeEnv === "production") {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      error: {
+        code: "RATE_LIMIT_EXCEEDED",
+        message: "Demasiadas solicitudes, intenta de nuevo más tarde",
+      },
     },
-  },
-});
-app.use(limiter);
+  });
+  app.use(limiter);
+}
 
 // Request parsing
 app.use(express.json({ limit: "10mb" }));
@@ -81,7 +93,9 @@ app.use(
       authMiddleware,
       requireRole(["ADMIN" as any]),
       TicketsController.deleteTicket,
-    ),
+    )
+    .get("/:ticketId/comments", authMiddleware, ...CommentsController.list)
+    .post("/:ticketId/comments", authMiddleware, ...CommentsController.create),
 );
 
 // 404 handler

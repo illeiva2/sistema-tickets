@@ -1,0 +1,99 @@
+{
+  "project": {
+    "name": "Forzani Tickets — Roadmap & Backlog",
+    "scope": "repo",
+    "description": "Roadmap y backlog con columnas, vistas y automatizaciones"
+  },
+  "columns": [
+    "Backlog",
+    "Prioridad: CRITICAL",
+    "Prioridad: HIGH",
+    "En progreso",
+    "En review",
+    "QA",
+    "Blocked",
+    "Done"
+  ],
+  "views": [
+    { "name": "Kanban", "type": "board", "groupBy": "status" },
+    { "name": "Roadmap", "type": "timeline", "groupBy": "milestone" },
+    { "name": "By Assignee", "type": "board", "groupBy": "assignee" },
+    { "name": "By Priority", "type": "board", "groupBy": "label:priority" }
+  ],
+  "labels": [
+    "CRITICAL",
+    "HIGH",
+    "MEDIUM",
+    "LOW",
+    "type:bug",
+    "type:feature",
+    "type:chore",
+    "area:api",
+    "area:web",
+    "area:infra",
+    "a11y",
+    "tests",
+    "security",
+    "blocked"
+  ],
+  "milestones": [
+    {
+      "title": "Milestone 1",
+      "description": "MVP autenticación, tickets básicos"
+    },
+    { "title": "Milestone 2", "description": "Dashboard y métricas" },
+    {
+      "title": "Milestone 3",
+      "description": "Adjuntos, comentarios y permisos avanzados"
+    },
+    { "title": "Milestone 4", "description": "Hardening, QA y release" }
+  ],
+  "automationRules": [
+    {
+      "name": "Label CRITICAL -> Prioridad: CRITICAL",
+      "if": { "label": "CRITICAL" },
+      "then": { "moveToColumn": "Prioridad: CRITICAL" }
+    },
+    {
+      "name": "Label HIGH -> Prioridad: HIGH",
+      "if": { "label": "HIGH" },
+      "then": { "moveToColumn": "Prioridad: HIGH" }
+    },
+    {
+      "name": "PR referencia issue -> En review",
+      "if": { "pullRequestReferencesIssue": true },
+      "then": { "moveToColumn": "En review" }
+    },
+    {
+      "name": "Issue cerrado -> Done",
+      "if": { "issueClosed": true },
+      "then": { "moveToColumn": "Done" }
+    }
+  ],
+  "issuesSeed": [
+    {
+      "title": "Auth: login/refresh y protección de rutas",
+      "body": "Implementar login, refresh y ProtectedRoute. DoD: tests de auth, docs.\n\n- Áreas: apps/api, apps/web\n- AC: login exitoso, refresh automático, rutas protegidas\n- DoD: unit tests y README actualizado",
+      "labels": ["type:feature", "area:api", "area:web", "HIGH", "milestone:1"],
+      "column": "Prioridad: HIGH"
+    },
+    {
+      "title": "Tickets: CRUD + filtros y paginación",
+      "body": "Endpoints y UI para listar, crear, ver, actualizar. DoD: tests API/UI.",
+      "labels": ["type:feature", "area:api", "area:web", "HIGH", "milestone:1"],
+      "column": "Prioridad: HIGH"
+    },
+    {
+      "title": "Dashboard: métricas básicas",
+      "body": "KPIs en dashboard (open, in-progress, resolved, closed)",
+      "labels": ["type:feature", "area:web", "MEDIUM", "milestone:2"],
+      "column": "Backlog"
+    },
+    {
+      "title": "CI: lint/build/test en GitHub Actions",
+      "body": "Corregir pipelines, generar prisma en prebuild y tests vitest.",
+      "labels": ["type:chore", "tests", "security", "HIGH", "milestone:1"],
+      "column": "En progreso"
+    }
+  ]
+}

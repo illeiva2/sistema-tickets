@@ -1,11 +1,16 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button, Input, Card, CardHeader, CardTitle, CardContent } from "@forzani/ui";
-import api from "../lib/api";
-import toast from "react-hot-toast";
+import {
+  Button,
+  Input,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@forzani/ui";
+import { useAuth } from "../hooks";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -15,7 +20,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -26,17 +31,9 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const response = await api.post("/api/auth/login", data);
-      const { accessToken, refreshToken, user } = response.data.data;
-
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      toast.success("Inicio de sesión exitoso");
-      navigate("/");
-    } catch (error: any) {
-      toast.error(error.response?.data?.error?.message || "Error al iniciar sesión");
+      await login(data);
+    } catch (error) {
+      // El error ya se maneja en el hook
     }
   };
 
@@ -56,7 +53,9 @@ const LoginPage: React.FC = () => {
                 className={errors.email ? "border-red-500" : ""}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <div>
@@ -67,14 +66,12 @@ const LoginPage: React.FC = () => {
                 className={errors.password ? "border-red-500" : ""}
               />
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message}
+                </p>
               )}
             </div>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full"
-            >
+            <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
           </form>
