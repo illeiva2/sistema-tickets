@@ -13,6 +13,7 @@ import { UsersController } from "./controllers/users.controller";
 import multer from "multer";
 import path from "path";
 import AttachmentsController from "./controllers/attachments.controller";
+import DashboardController from "./controllers/dashboard.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
 // Using literal role strings to avoid enum import issues in some environments
 
@@ -84,6 +85,11 @@ app.use(
     .post("/login", ...AuthController.login)
     .post("/refresh", ...AuthController.refreshToken)
     .get("/me", authMiddleware, AuthController.me),
+);
+
+app.use(
+  "/api/dashboard",
+  express.Router().get("/stats", authMiddleware, DashboardController.stats),
 );
 
 app.use(

@@ -61,6 +61,16 @@ export class CommentsController {
           req.user.id,
           message,
         );
+        // Audit log para actividad reciente
+        const { prisma } = await import("../lib/database");
+        await prisma.auditLog.create({
+          data: {
+            entity: "ticket",
+            entityId: ticketId,
+            action: "comment_added",
+            actorId: req.user.id,
+          },
+        });
         res.status(201).json({ success: true, data: comment });
       } catch (err) {
         next(err);
