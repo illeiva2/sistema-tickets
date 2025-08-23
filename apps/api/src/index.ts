@@ -9,6 +9,7 @@ import { requestIdMiddleware } from "./middleware/requestId";
 import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
 import { CommentsController } from "./controllers/comments.controller";
+import { UsersController } from "./controllers/users.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
 // Using literal role strings to avoid enum import issues in some environments
 
@@ -96,6 +97,11 @@ app.use(
     )
     .get("/:ticketId/comments", authMiddleware, ...CommentsController.list)
     .post("/:ticketId/comments", authMiddleware, ...CommentsController.create),
+);
+
+app.use(
+  "/api/users",
+  express.Router().get("/agents", authMiddleware, UsersController.listAgents),
 );
 
 // 404 handler

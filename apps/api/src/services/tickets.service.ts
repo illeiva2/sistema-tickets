@@ -179,18 +179,32 @@ export class TicketsService {
       }
     }
 
-    // Validate status transitions
-    if (data.status && data.status !== ticket.status) {
-      const validTransitions = this.getValidStatusTransitions(
-        ticket.status,
-        userRole,
+    // Only ADMIN can assign tickets
+    if (
+      Object.prototype.hasOwnProperty.call(data, "assigneeId") &&
+      userRole !== UserRole.ADMIN
+    ) {
+      throw new ApiError(
+        "FORBIDDEN",
+        "Solo los administradores pueden asignar tickets",
+        403,
       );
-      if (!validTransitions.includes(data.status)) {
-        throw new ApiError(
-          "INVALID_STATUS",
-          "Transición de estado no válida",
-          400,
+    }
+
+    // Validate status transitions (agents/admin can set any status)
+    if (data.status && data.status !== ticket.status) {
+      if (userRole === UserRole.USER) {
+        const validTransitions = this.getValidStatusTransitions(
+          ticket.status,
+          userRole,
         );
+        if (!validTransitions.includes(data.status)) {
+          throw new ApiError(
+            "INVALID_STATUS",
+            "Transición de estado no válida",
+            400,
+          );
+        }
       }
 
       // Set closedAt when status is CLOSED

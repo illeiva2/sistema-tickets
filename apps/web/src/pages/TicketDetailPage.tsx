@@ -18,6 +18,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useTickets } from "../hooks";
+import api from "../lib/api";
 
 const TicketDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -27,6 +28,10 @@ const TicketDetailPage: React.FC = () => {
   const [ticket, setTicket] = useState<any | null>(null);
   const [commentText, setCommentText] = useState("");
   const [adding, setAdding] = useState(false);
+  const [agents, setAgents] = useState<
+    Array<{ id: string; name: string; email: string }>
+  >([]);
+  const [saving, setSaving] = useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -46,6 +51,19 @@ const TicketDetailPage: React.FC = () => {
     // fijar dependencias para evitar recargas innecesarias
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Cargar agentes para asignación
+  React.useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        const res = await api.get("/api/users/agents");
+        setAgents(res.data?.data || []);
+      } catch {
+        // noop
+      }
+    };
+    loadAgents();
+  }, []);
 
   if (isLoading) {
     return (
@@ -246,16 +264,71 @@ const TicketDetailPage: React.FC = () => {
                 <label className="text-xs font-medium text-muted-foreground">
                   Estado
                 </label>
-                <Badge>{ticket?.status || "OPEN"}</Badge>
+                <div className="flex items-center space-x-2">
+                  <select
+                    className="px-2 py-1 border rounded-md text-sm"
+                    value={ticket?.status || "OPEN"}
+                    onChange={async (e) => {
+                      if (!ticket) return;
+                      setSaving(true);
+                      try {
+                        const resp = await api.patch(
+                          `/api/tickets/${ticket.id}`,
+                          { status: e.target.value },
+                        );
+                        setTicket((prev: any) => ({
+                          ...(prev || {}),
+                          ...(resp.data?.data || {}),
+                        }));
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  >
+                    <option value="OPEN">Abierto</option>
+                    <option value="IN_PROGRESS">En progreso</option>
+                    <option value="RESOLVED">Resuelto</option>
+                    <option value="CLOSED">Cerrado</option>
+                  </select>
+                  {saving && (
+                    <span className="text-xs text-muted-foreground">
+                      Guardando...
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">
                   Prioridad
                 </label>
-                <Badge variant="destructive">
-                  {ticket?.priority || "MEDIUM"}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  <select
+                    className="px-2 py-1 border rounded-md text-sm"
+                    value={ticket?.priority || "MEDIUM"}
+                    onChange={async (e) => {
+                      if (!ticket) return;
+                      setSaving(true);
+                      try {
+                        const resp = await api.patch(
+                          `/api/tickets/${ticket.id}`,
+                          { priority: e.target.value },
+                        );
+                        setTicket((prev: any) => ({
+                          ...(prev || {}),
+                          ...(resp.data?.data || {}),
+                        }));
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  >
+                    <option value="LOW">Baja</option>
+                    <option value="MEDIUM">Media</option>
+                    <option value="HIGH">Alta</option>
+                    <option value="URGENT">Urgente</option>
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -264,9 +337,35 @@ const TicketDetailPage: React.FC = () => {
                 </label>
                 <div className="flex items-center space-x-2">
                   <User size={14} />
-                  <span className="text-sm">
-                    {ticket?.assignee?.name || "Sin asignar"}
-                  </span>
+                  <select
+                    className="px-2 py-1 border rounded-md text-sm"
+                    value={ticket?.assignee?.id || ""}
+                    onChange={async (e) => {
+                      if (!ticket) return;
+                      setSaving(true);
+                      try {
+                        const resp = await api.patch(
+                          `/api/tickets/${ticket.id}`,
+                          {
+                            assigneeId: e.target.value || null,
+                          },
+                        );
+                        setTicket((prev: any) => ({
+                          ...(prev || {}),
+                          ...(resp.data?.data || {}),
+                        }));
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  >
+                    <option value="">Sin asignar</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} ({a.email})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
