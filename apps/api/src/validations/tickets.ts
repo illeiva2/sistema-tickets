@@ -32,15 +32,15 @@ export const updateTicketSchema = z.object({
       errorMap: () => ({ message: "Prioridad inválida" }),
     })
     .optional(),
-  assigneeId: z.string().uuid("ID de asignado inválido").optional(),
+  assigneeId: z.string().cuid("ID de asignado inválido").optional(),
 });
 
 export const ticketFiltersSchema = z.object({
   q: z.string().optional(),
   status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
-  requesterId: z.string().uuid().optional(),
-  assigneeId: z.string().uuid().optional(),
+  requesterId: z.string().cuid().optional(),
+  assigneeId: z.string().cuid().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
   page: z.coerce.number().min(1).default(1),
