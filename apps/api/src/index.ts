@@ -9,7 +9,7 @@ import { requestIdMiddleware } from "./middleware/requestId";
 import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
-import { UserRole } from "@prisma/client";
+// Using literal role strings to avoid enum import issues in some environments
 
 const app = express();
 
@@ -79,7 +79,7 @@ app.use(
     .delete(
       "/:id",
       authMiddleware,
-      requireRole([UserRole.ADMIN]),
+      requireRole(["ADMIN" as any]),
       TicketsController.deleteTicket,
     ),
 );
