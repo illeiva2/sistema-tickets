@@ -33,14 +33,27 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [notificationsLoaded, setNotificationsLoaded] = useState(false);
 
   // Fetch user notifications
   const fetchNotifications = async () => {
+    if (notificationsLoaded) {
+      console.log("Notifications already loaded, skipping...");
+      return;
+    }
+
     setIsLoading(true);
     try {
+      console.log("Fetching notifications...");
       const response = await api.get("/api/notifications/user");
       if (response.data.success) {
         setNotifications(response.data.data);
+        setNotificationsLoaded(true);
+        console.log(
+          "Notifications loaded:",
+          response.data.data.length,
+          "items",
+        );
       }
     } catch (error: any) {
       console.error("Error fetching notifications:", error);
@@ -174,7 +187,7 @@ export const useNotifications = () => {
   useEffect(() => {
     fetchNotifications();
     fetchPreferences();
-  }, [fetchNotifications, fetchPreferences]); // Incluir dependencias
+  }, []); // Solo se ejecuta una vez al montar el componente
 
   return {
     // Data
