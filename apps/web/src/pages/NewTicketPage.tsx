@@ -34,8 +34,8 @@ const NewTicketPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4">
+    <div className="space-y-4">
+      <div className="flex items-center space-x-3">
         <Button
           variant="outline"
           size="sm"
@@ -45,23 +45,23 @@ const NewTicketPage: React.FC = () => {
           Volver
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Nuevo Ticket</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold">Nuevo Ticket</h1>
+          <p className="text-sm text-muted-foreground">
             Crear un nuevo ticket de soporte
           </p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Ticket size={20} />
-            <span>Crear Ticket</span>
+        <CardHeader className="px-3 pt-2 pb-3">
+          <CardTitle className="flex items-center space-x-2 pl-2">
+            <Ticket size={18} />
+            <span className="text-base">Crear Ticket</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+        <CardContent className="px-3 pb-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium">Título *</label>
               <Input
                 value={formData.title}
@@ -72,24 +72,24 @@ const NewTicketPage: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium">Descripción *</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => handleChange("description", e.target.value)}
                 placeholder="Describe detalladamente el problema o solicitud..."
                 required
-                rows={5}
+                rows={4}
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium">Prioridad</label>
               <select
                 value={formData.priority}
                 onChange={(e) => handleChange("priority", e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border rounded-md dark:text-gray-400 text-gray-5000 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="LOW">Baja</option>
                 <option value="MEDIUM">Media</option>
@@ -98,16 +98,18 @@ const NewTicketPage: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => navigate("/tickets")}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
+                size="sm"
                 disabled={
                   isSubmitting || !formData.title || !formData.description
                 }

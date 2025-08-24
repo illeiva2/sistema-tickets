@@ -124,6 +124,7 @@ const TicketDetailPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <Button
+          className="px-2 py-1 text-sm"
           variant="outline"
           size="sm"
           onClick={() => navigate("/tickets")}
@@ -132,11 +133,13 @@ const TicketDetailPage: React.FC = () => {
           Volver
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Ticket #{id}</h1>
-          <p className="text-muted-foreground">Detalles del ticket</p>
+          <h1 className="text-3xl font-bold px-2">Ticket #{id}</h1>
+          <h2 className="text-muted-foreground px-2 pt-1">
+            Detalles del ticket
+          </h2>
         </div>
         <div className="ml-auto flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" className="px-2 py-1 text-sm" size="sm">
             <Edit size={16} className="mr-2" />
             Editar
           </Button>
@@ -145,21 +148,25 @@ const TicketDetailPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contenido principal */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4 px-2">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{ticket?.title || `Ticket ${id}`}</span>
-                <Badge variant="secondary">{ticket?.status || "OPEN"}</Badge>
+              <CardTitle className="flex items-center px-2 pt-2 justify-between">
+                <span className="pr-4 pl-2">
+                  {ticket?.title || `Ticket ${id}`}
+                </span>
+                <Badge variant="secondary" className="px-2 py-1 text-sm">
+                  {ticket?.status || "OPEN"}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 pt-4">
               <div className="space-y-4">
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed px-2 pb-2">
                   {ticket?.description || "Sin descripción"}
                 </p>
 
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                <div className="flex items-center pb-2 space-x-4 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <User size={14} />
                     <span>
@@ -182,16 +189,16 @@ const TicketDetailPage: React.FC = () => {
           {/* Comentarios */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 px-2 pt-2">
                 <MessageSquare size={20} />
                 <span>Comentarios</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 pt-4">
               {ticket?.comments && ticket.comments.length > 0 ? (
                 <div className="space-y-4">
                   {ticket.comments.map((c: any) => (
-                    <div key={c.id} className="border rounded-md p-3">
+                    <div key={c.id} className="border rounded-md p-2">
                       <div className="flex items-center justify-between mb-1">
                         <div className="text-sm text-muted-foreground">
                           {c.author?.name || c.author?.email || "Usuario"}
@@ -206,7 +213,7 @@ const TicketDetailPage: React.FC = () => {
                 </div>
               ) : (
                 <EmptyState
-                  icon={<MessageSquare size={48} />}
+                  icon={<MessageSquare size={32} className="pr-2" />}
                   title="Sin comentarios"
                   description="Este ticket aún no tiene comentarios. Sé el primero en agregar información o actualizaciones."
                   action={null}
@@ -214,12 +221,12 @@ const TicketDetailPage: React.FC = () => {
               )}
 
               {/* Formulario para nuevo comentario */}
-              <div className="mt-4 flex items-center space-x-2">
+              <div className="mt-4 flex items-center space-x-2 px-2 pb-3">
                 <Input
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Escribe un comentario..."
-                  className="flex-1"
+                  className="flex-1 px-3 pb-2"
                 />
                 <Button
                   disabled={adding || !commentText.trim()}
@@ -259,9 +266,9 @@ const TicketDetailPage: React.FC = () => {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Información</CardTitle>
+              <CardTitle className="px-3 pt-2">Información</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-3 pt-4 pb-2">
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">
                   Estado
@@ -389,12 +396,12 @@ const TicketDetailPage: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 px-3 pt-2">
                 <Paperclip size={20} />
                 <span>Archivos</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pt-4 pb-2">
               {/* Uploader */}
               <div className="flex items-center space-x-2 mb-3">
                 <input
@@ -410,6 +417,7 @@ const TicketDetailPage: React.FC = () => {
                   </span>
                 )}
                 <Button
+                  className="px-2 py-1 text-sm"
                   variant="outline"
                   size="sm"
                   disabled={!selectedFile || uploading || !ticket}
@@ -482,12 +490,14 @@ const TicketDetailPage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon={<Paperclip size={32} />}
-                  title="Sin archivos"
-                  description="No se han adjuntado archivos a este ticket."
-                  action={null}
-                />
+                <Card className="px-2">
+                  <EmptyState
+                    icon={<Paperclip size={32} />}
+                    title="Sin archivos"
+                    description="No se han adjuntado archivos a este ticket."
+                    action={null}
+                  />
+                </Card>
               )}
             </CardContent>
           </Card>

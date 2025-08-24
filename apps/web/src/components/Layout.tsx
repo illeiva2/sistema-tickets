@@ -86,13 +86,28 @@ const Layout: React.FC = () => {
     logout();
   };
 
+  // Dark mode toggle (simple)
+  const [dark, setDark] = React.useState<boolean>(
+    typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark"),
+  );
+  React.useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [dark]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75 shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between bg-blue-200">
           <div className="flex items-center space-x-6">
-            <h1 className="text-xl font-bold text-primary">Empresa Tickets</h1>
+            <h1 className="text-xl font-bold text-primary tracking-tight">
+              Empresa Tickets
+            </h1>
             <nav className="flex items-center space-x-1">
               <NavLink to="/" icon={<BarChart3 size={16} />}>
                 Dashboard
@@ -107,14 +122,27 @@ const Layout: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm font-medium dark:text-black text-gray-5000 text-foreground">
                 {user?.name || "Usuario"}
               </p>
-              <p className="text-xs text-muted-foreground capitalize">
+              <p className="text-xs dark:text-black text-black text-muted-foreground capitalize">
                 {user?.role || "USER"}
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2 py-1 text-sm"
+              onClick={() => setDark(!dark)}
+            >
+              {dark ? "Light" : "Dark"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2 py-1 text-sm"
+              onClick={handleLogout}
+            >
               <LogOut size={16} className="mr-2" />
               Cerrar Sesión
             </Button>
