@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@forzani/ui";
-import { LogOut, Ticket, BarChart3, Plus, Home } from "lucide-react";
+import { LogOut, Ticket, BarChart3, Plus, Home, Mail } from "lucide-react";
 import { useAuth } from "../hooks";
 
 // Componente de navegación con estado activo
@@ -117,6 +117,9 @@ const Layout: React.FC = () => {
               </NavLink>
               <NavLink to="/tickets/new" icon={<Plus size={16} />}>
                 Nuevo Ticket
+              </NavLink>
+              <NavLink to="/notifications" icon={<Mail size={16} />}>
+                Notificaciones
               </NavLink>
             </nav>
           </div>

@@ -14,15 +14,12 @@ export const validate = (schema: AnyZodObject) => {
       // Asignar los valores parseados/coercionados de vuelta al request
       if (parsed && typeof parsed === "object") {
         if (Object.prototype.hasOwnProperty.call(parsed, "body")) {
-          // @ts-expect-error - sobrescribimos con tipos parseados
           req.body = parsed.body;
         }
         if (Object.prototype.hasOwnProperty.call(parsed, "query")) {
-          // @ts-expect-error - sobrescribimos con tipos parseados
           req.query = parsed.query as any;
         }
         if (Object.prototype.hasOwnProperty.call(parsed, "params")) {
-          // @ts-expect-error - sobrescribimos con tipos parseados
           req.params = parsed.params as any;
         }
       }

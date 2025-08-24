@@ -14,6 +14,7 @@ import multer from "multer";
 import path from "path";
 import AttachmentsController from "./controllers/attachments.controller";
 import DashboardController from "./controllers/dashboard.controller";
+import { NotificationsController } from "./controllers/notifications.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
 // Using literal role strings to avoid enum import issues in some environments
 
@@ -28,11 +29,21 @@ app.use(
         ? ["https://yourdomain.com"]
         : [
             "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
             "http://localhost:3000",
             "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
+            "http://127.0.0.1:5175",
             "http://192.168.176.1:5173",
+            "http://192.168.176.1:5174",
+            "http://192.168.176.1:5175",
             "http://192.168.1.127:5173",
+            "http://192.168.1.127:5174",
+            "http://192.168.1.127:5175",
             "http://172.19.160.1:5173",
+            "http://172.19.160.1:5174",
+            "http://172.19.160.1:5175",
           ],
     credentials: true,
   }),
@@ -113,6 +124,19 @@ app.use(
 app.use(
   "/api/users",
   express.Router().get("/agents", authMiddleware, UsersController.listAgents),
+);
+
+app.use(
+  "/api/notifications",
+  express
+    .Router()
+    .get("/debug-config", authMiddleware, NotificationsController.debugConfig)
+    .get(
+      "/test-connection",
+      authMiddleware,
+      NotificationsController.testConnection,
+    )
+    .post("/test-email", authMiddleware, NotificationsController.sendTestEmail),
 );
 
 // Attachments routes

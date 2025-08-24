@@ -1,5 +1,6 @@
 import { prisma } from "../lib/database";
 import { ApiError } from "../lib/errors";
+import { NotificationsService } from "./notifications.service";
 
 export class CommentsService {
   static async listByTicket(ticketId: string, page = 1, pageSize = 20) {
@@ -33,7 +34,13 @@ export class CommentsService {
   }
 
   static async create(ticketId: string, authorId: string, message: string) {
-    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        requester: { select: { id: true, name: true, email: true } },
+      },
+    });
     if (!ticket)
       throw new ApiError("TICKET_NOT_FOUND", "Ticket no encontrado", 404);
 
@@ -43,6 +50,21 @@ export class CommentsService {
         author: { select: { id: true, name: true, email: true, role: true } },
       },
     });
+
+    // Send notification to assignee if ticket is assigned and comment is not from assignee
+    if (ticket.assignee && ticket.assignee.id !== authorId) {
+      // Send notification asynchronously (don't block the response)
+      NotificationsService.notifyCommentAdded({
+        ticketId,
+        ticketTitle: ticket.title,
+        ticketDescription: ticket.description,
+        assigneeName: ticket.assignee.name,
+        assigneeEmail: ticket.assignee.email,
+        commentText: message,
+      }).catch((error) => {
+        console.error("Failed to send comment notification:", error);
+      });
+    }
 
     return comment;
   }

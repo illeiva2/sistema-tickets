@@ -3,6 +3,7 @@ import { ApiError } from "../lib/errors";
 import { logger } from "../lib/logger";
 import { UserRole } from "@prisma/client";
 import { TicketFilters } from "../validations/tickets";
+import { NotificationsService } from "./notifications.service";
 
 type StatusLiteral = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 
@@ -275,6 +276,66 @@ export class TicketsService {
     }
     if (logs.length > 0) {
       await Promise.all(logs);
+    }
+
+    // Send notifications for important changes
+    const notificationPromises: Array<Promise<void>> = [];
+
+    // Notify when ticket is assigned to someone
+    if (
+      Object.prototype.hasOwnProperty.call(data, "assigneeId") &&
+      data.assigneeId &&
+      data.assigneeId !== ticket.assigneeId
+    ) {
+      const assignee = await prisma.user.findUnique({
+        where: { id: data.assigneeId },
+        select: { name: true, email: true },
+      });
+
+      if (assignee) {
+        notificationPromises.push(
+          NotificationsService.notifyTicketAssigned({
+            ticketId: id,
+            ticketTitle: updatedTicket.title,
+            ticketDescription: updatedTicket.description,
+            status: updatedTicket.status,
+            priority: updatedTicket.priority,
+            assigneeName: assignee.name,
+            assigneeEmail: assignee.email,
+            createdByName: ticket.requester.name,
+          }),
+        );
+      }
+    }
+
+    // Notify when status changes
+    if (
+      data.status &&
+      data.status !== ticket.status &&
+      updatedTicket.assignee
+    ) {
+      notificationPromises.push(
+        NotificationsService.notifyTicketStatusChanged({
+          ticketId: id,
+          ticketTitle: updatedTicket.title,
+          ticketDescription: updatedTicket.description,
+          status: data.status,
+          assigneeName: updatedTicket.assignee.name,
+          assigneeEmail: updatedTicket.assignee.email,
+        }),
+      );
+    }
+
+    // Send notifications asynchronously (don't block the response)
+    if (notificationPromises.length > 0) {
+      Promise.allSettled(notificationPromises).then((results) => {
+        const failed = results.filter((r) => r.status === "rejected").length;
+        if (failed > 0) {
+          logger.warn(
+            `Failed to send ${failed} notifications for ticket ${id}`,
+          );
+        }
+      });
     }
 
     logger.info(`Ticket updated: ${id} by user: ${userId}`);
