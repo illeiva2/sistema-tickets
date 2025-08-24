@@ -190,6 +190,13 @@ export const useNotifications = () => {
     fetchPreferences();
   }, []); // Solo se ejecuta una vez al montar el componente
 
+  // Calculate unread count when notifications change
+  useEffect(() => {
+    const count = notifications.filter((n) => !n.read).length;
+    setUnreadCount(count);
+    console.log("Unread count updated:", count);
+  }, [notifications]);
+
   return {
     // Data
     notifications,

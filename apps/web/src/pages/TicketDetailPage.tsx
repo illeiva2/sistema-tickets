@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useTickets, useAuth } from "../hooks";
 import api, { API_URL } from "../lib/api";
+import { toast } from "react-hot-toast";
 
 const TicketDetailPage: React.FC = () => {
   const { id } = useParams();
