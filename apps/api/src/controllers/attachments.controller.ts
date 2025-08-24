@@ -14,15 +14,13 @@ export class AttachmentsController {
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
       try {
         if (!req.user) {
-          return res
-            .status(401)
-            .json({
-              success: false,
-              error: {
-                code: "UNAUTHORIZED",
-                message: "Usuario no autenticado",
-              },
-            });
+          return res.status(401).json({
+            success: false,
+            error: {
+              code: "UNAUTHORIZED",
+              message: "Usuario no autenticado",
+            },
+          });
         }
         const { ticketId } = req.params as any;
         const data = await AttachmentsService.listByTicket(ticketId);
@@ -40,23 +38,18 @@ export class AttachmentsController {
   ) => {
     try {
       if (!req.user) {
-        return res
-          .status(401)
-          .json({
-            success: false,
-            error: { code: "UNAUTHORIZED", message: "Usuario no autenticado" },
-          });
+        return res.status(401).json({
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "Usuario no autenticado" },
+        });
       }
       const { ticketId } = req.params as any;
-      // @ts-expect-error multer adds file
       const file = req.file as Express.Multer.File | undefined;
       if (!file) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error: { code: "NO_FILE", message: "Archivo requerido" },
-          });
+        return res.status(400).json({
+          success: false,
+          error: { code: "NO_FILE", message: "Archivo requerido" },
+        });
       }
       const created = await AttachmentsService.create(ticketId, file);
       res.status(201).json({ success: true, data: created });
@@ -72,12 +65,10 @@ export class AttachmentsController {
   ) => {
     try {
       if (!req.user) {
-        return res
-          .status(401)
-          .json({
-            success: false,
-            error: { code: "UNAUTHORIZED", message: "Usuario no autenticado" },
-          });
+        return res.status(401).json({
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "Usuario no autenticado" },
+        });
       }
       const { id } = req.params as any;
       await AttachmentsService.delete(id);
