@@ -115,6 +115,7 @@ app.use(
     .get("/:id", authMiddleware, TicketsController.getTicketById)
     .post("/", authMiddleware, ...TicketsController.createTicket)
     .patch("/:id", authMiddleware, ...TicketsController.updateTicket)
+    .post("/:id/close", authMiddleware, ...TicketsController.closeTicket)
     .delete(
       "/:id",
       authMiddleware,

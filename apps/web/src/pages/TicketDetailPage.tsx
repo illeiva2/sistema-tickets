@@ -38,10 +38,12 @@ const TicketDetailPage: React.FC = () => {
     Array<{ id: string; name: string; email: string }>
   >([]);
   const [saving, setSaving] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [closeComment, setCloseComment] = useState("");
 
-  // Función para formatear el ID del ticket (mostrar solo los últimos 8 caracteres)
-  const formatTicketId = (ticketId: string) => {
-    return ticketId.slice(-8).toUpperCase();
+  // Función para formatear el número del ticket
+  const formatTicketNumber = (ticketNumber: number) => {
+    return ticketNumber.toString().padStart(5, "0");
   };
 
   React.useEffect(() => {
@@ -85,6 +87,34 @@ const TicketDetailPage: React.FC = () => {
     loadAgents();
   }, []);
 
+  // Función para cerrar ticket
+  const handleCloseTicket = async () => {
+    if (!closeComment.trim()) {
+      toast.error("Debes proporcionar un comentario para cerrar el ticket");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await api.post(`/api/tickets/${id}/close`, {
+        comment: closeComment.trim(),
+      });
+
+      if (response.data.success) {
+        toast.success("Ticket cerrado correctamente");
+        setTicket(response.data.data);
+        setShowCloseModal(false);
+        setCloseComment("");
+      }
+    } catch (error: any) {
+      const message =
+        error.response?.data?.error?.message || "Error al cerrar el ticket";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -99,7 +129,10 @@ const TicketDetailPage: React.FC = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">
-              Ticket #{id ? formatTicketId(id) : ""}
+              Ticket #
+              {ticket?.ticketNumber
+                ? formatTicketNumber(ticket.ticketNumber)
+                : "..."}
             </h1>
             <p className="text-muted-foreground">Detalles del ticket</p>
           </div>
@@ -154,7 +187,10 @@ const TicketDetailPage: React.FC = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold px-2">
-            Ticket #{id ? formatTicketId(id) : ""}
+            Ticket #
+            {ticket?.ticketNumber
+              ? formatTicketNumber(ticket.ticketNumber)
+              : "..."}
           </h1>
           <h2 className="text-muted-foreground px-2 pt-1">
             Detalles del ticket
@@ -322,12 +358,7 @@ const TicketDetailPage: React.FC = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            // TODO: Implementar modal para cerrar ticket con comentario
-                            alert(
-                              "Funcionalidad en desarrollo: Cerrar ticket con comentario obligatorio",
-                            );
-                          }}
+                          onClick={() => setShowCloseModal(true)}
                         >
                           Cerrar Ticket
                         </Button>
@@ -581,6 +612,46 @@ const TicketDetailPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Modal para cerrar ticket */}
+      {showCloseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              Cerrar Ticket
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Para cerrar este ticket, debes proporcionar un comentario
+              explicando por qué se considera resuelto.
+            </p>
+
+            <textarea
+              value={closeComment}
+              onChange={(e) => setCloseComment(e.target.value)}
+              placeholder="Describe por qué este ticket se considera resuelto..."
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md mb-4 min-h-[100px] resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            />
+
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => setShowCloseModal(false)}
+                variant="outline"
+                className="flex-1"
+                disabled={saving}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCloseTicket}
+                className="flex-1"
+                disabled={!closeComment.trim() || saving}
+              >
+                {saving ? "Cerrando..." : "Cerrar Ticket"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

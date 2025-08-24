@@ -57,20 +57,17 @@ const TicketsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Extraer valores de filtros para evitar expresiones complejas en useEffect
+  const sortBy = (filters as any).sortBy;
+  const sortDir = (filters as any).sortDir;
+
   React.useEffect(() => {
     const handle = setTimeout(() => {
       fetchTickets({ filters, page: 1, pageSize });
       setPage(1);
     }, 250);
     return () => clearTimeout(handle);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    filters.q,
-    filters.status,
-    filters.priority,
-    (filters as any).sortBy,
-    (filters as any).sortDir,
-  ]);
+  }, [filters.q, filters.status, filters.priority, sortBy, sortDir]);
 
   // Sincronizar URL con estado
   React.useEffect(() => {
@@ -78,14 +75,12 @@ const TicketsPage: React.FC = () => {
     if (filters.q) sp.set("q", String(filters.q));
     if (filters.status) sp.set("status", String(filters.status));
     if (filters.priority) sp.set("priority", String(filters.priority));
-    if ((filters as any).sortBy)
-      sp.set("sortBy", String((filters as any).sortBy));
-    if ((filters as any).sortDir)
-      sp.set("sortDir", String((filters as any).sortDir));
+    if (sortBy) sp.set("sortBy", String(sortBy));
+    if (sortDir) sp.set("sortDir", String(sortDir));
     sp.set("page", String(page));
     sp.set("pageSize", String(pageSize));
     setSearchParams(sp, { replace: true });
-  }, [filters, page, pageSize, setSearchParams]);
+  }, [filters, page, pageSize, setSearchParams, sortBy, sortDir]);
 
   // No early return on loading to preserve input focus
 
@@ -247,6 +242,7 @@ const TicketsPage: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <h3 className="font-semibold text-lg">
+                          #{ticket.ticketNumber?.toString().padStart(5, "0")} -{" "}
                           {ticket.title}
                         </h3>
                         <span

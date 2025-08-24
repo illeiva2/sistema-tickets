@@ -339,6 +339,81 @@ export class TicketsService {
     return updatedTicket;
   }
 
+  static async closeTicket(
+    id: string,
+    userId: string,
+    userRole: UserRole,
+    comment: string,
+  ) {
+    const ticket = await prisma.ticket.findUnique({ where: { id } });
+    if (!ticket) {
+      throw new ApiError("TICKET_NOT_FOUND", "Ticket no encontrado", 404);
+    }
+
+    // Only ticket requester can close their own tickets
+    if (userRole === UserRole.USER && ticket.requesterId !== userId) {
+      throw new ApiError(
+        "FORBIDDEN",
+        "Solo puedes cerrar tus propios tickets",
+        403,
+      );
+    }
+
+    // Validate comment is provided
+    if (!comment || comment.trim().length === 0) {
+      throw new ApiError(
+        "MISSING_COMMENT",
+        "Debes proporcionar un comentario para cerrar el ticket",
+        400,
+      );
+    }
+
+    // Create the closing comment
+    await prisma.comment.create({
+      data: {
+        ticketId: id,
+        authorId: userId,
+        message: `[TICKET CERRADO] ${comment}`,
+      },
+    });
+
+    // Update ticket status to CLOSED
+    const updatedTicket = await prisma.ticket.update({
+      where: { id },
+      data: {
+        status: "CLOSED",
+        closedAt: new Date(),
+      },
+      include: {
+        requester: {
+          select: { id: true, name: true, email: true },
+        },
+        assignee: {
+          select: { id: true, name: true, email: true },
+        },
+        comments: {
+          include: {
+            author: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+
+    // Send notification about ticket closure
+    await NotificationsService.notifyStatusChanged(
+      id,
+      ticket.status,
+      "CLOSED",
+      userId,
+    );
+
+    logger.info(`Ticket closed: ${id} by user: ${userId}`);
+    return updatedTicket;
+  }
+
   static async deleteTicket(id: string, userRole: UserRole) {
     if (userRole !== UserRole.ADMIN) {
       throw new ApiError(

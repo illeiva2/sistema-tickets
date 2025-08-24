@@ -67,6 +67,7 @@ export interface AuthResponse {
 
 // Ticket types
 export interface Ticket extends BaseEntity {
+  ticketNumber: number;
   title: string;
   description: string;
   status: TicketStatus;

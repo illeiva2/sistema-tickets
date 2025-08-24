@@ -1,8 +1,8 @@
 import React from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useParams } from "react-router-dom";
 import { Button } from "@forzani/ui";
 import { LogOut, Ticket, BarChart3, Plus, Home, Mail } from "lucide-react";
-import { useAuth, useNotifications } from "../hooks";
+import { useAuth, useNotifications, useTickets } from "../hooks";
 
 // Componente de navegación con estado activo
 const NavLink = ({
@@ -36,6 +36,26 @@ const NavLink = ({
 const Breadcrumbs = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
+  const { id: ticketId } = useParams();
+  const { getTicketById } = useTickets();
+  const [ticketNumber, setTicketNumber] = React.useState<string | null>(null);
+
+  // Si estamos en la página de detalle de un ticket, obtener el número
+  React.useEffect(() => {
+    if (ticketId && pathnames.length === 2 && pathnames[0] === "tickets") {
+      const fetchTicketNumber = async () => {
+        try {
+          const ticket = await getTicketById(ticketId);
+          if (ticket?.ticketNumber) {
+            setTicketNumber(ticket.ticketNumber.toString().padStart(5, "0"));
+          }
+        } catch (error) {
+          console.error("Error fetching ticket number:", error);
+        }
+      };
+      fetchTicketNumber();
+    }
+  }, [ticketId, pathnames, getTicketById]);
 
   if (pathnames.length === 0) return null;
 
@@ -53,12 +73,22 @@ const Breadcrumbs = () => {
         const isLast = index === pathnames.length - 1;
 
         // Mapear nombres más amigables
-        const displayName =
+        let displayName =
           {
             tickets: "Tickets",
             new: "Nuevo",
             login: "Iniciar Sesión",
           }[name] || name;
+
+        // Si es el último elemento y estamos en la página de detalle de un ticket, mostrar el número
+        if (
+          isLast &&
+          ticketNumber &&
+          pathnames.length === 2 &&
+          pathnames[0] === "tickets"
+        ) {
+          displayName = `${ticketNumber}`;
+        }
 
         return (
           <React.Fragment key={name}>
