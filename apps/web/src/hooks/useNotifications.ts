@@ -185,6 +185,7 @@ export const useNotifications = () => {
 
   // Load notifications and preferences on mount
   useEffect(() => {
+    console.log("useNotifications useEffect triggered");
     fetchNotifications();
     fetchPreferences();
   }, []); // Solo se ejecuta una vez al montar el componente

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../lib/api";
 import { useAuth } from "./useAuth";
 
@@ -31,7 +31,7 @@ export const useDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -50,9 +50,10 @@ export const useDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.role]);
 
   useEffect(() => {
+    console.log("useDashboard useEffect triggered, user:", user?.role);
     if (user) {
       fetchDashboardStats();
     }
