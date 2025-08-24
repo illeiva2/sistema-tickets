@@ -294,35 +294,32 @@ export class TicketsService {
 
       if (assignee) {
         notificationPromises.push(
-          NotificationsService.notifyTicketAssigned({
-            ticketId: id,
-            ticketTitle: updatedTicket.title,
-            ticketDescription: updatedTicket.description,
-            status: updatedTicket.status,
-            priority: updatedTicket.priority,
-            assigneeName: assignee.name,
-            assigneeEmail: assignee.email,
-            createdByName: ticket.requester.name,
-          }),
+          NotificationsService.notifyTicketAssigned(id, data.assigneeId),
         );
       }
     }
 
     // Notify when status changes
-    if (
-      data.status &&
-      data.status !== ticket.status &&
-      updatedTicket.assignee
-    ) {
+    if (data.status && data.status !== ticket.status) {
       notificationPromises.push(
-        NotificationsService.notifyTicketStatusChanged({
-          ticketId: id,
-          ticketTitle: updatedTicket.title,
-          ticketDescription: updatedTicket.description,
-          status: data.status,
-          assigneeName: updatedTicket.assignee.name,
-          assigneeEmail: updatedTicket.assignee.email,
-        }),
+        NotificationsService.notifyStatusChanged(
+          id,
+          ticket.status,
+          data.status,
+          userId,
+        ),
+      );
+    }
+
+    // Notify when priority changes
+    if (data.priority && data.priority !== ticket.priority) {
+      notificationPromises.push(
+        NotificationsService.notifyPriorityChanged(
+          id,
+          ticket.priority,
+          data.priority,
+          userId,
+        ),
       );
     }
 

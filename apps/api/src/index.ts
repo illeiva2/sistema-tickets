@@ -100,7 +100,11 @@ app.use(
 
 app.use(
   "/api/dashboard",
-  express.Router().get("/stats", authMiddleware, DashboardController.stats),
+  express
+    .Router()
+    .get("/stats", authMiddleware, DashboardController.stats)
+    .get("/agent-stats", authMiddleware, DashboardController.agentStats)
+    .get("/user-stats", authMiddleware, DashboardController.userStats),
 );
 
 app.use(
@@ -136,7 +140,24 @@ app.use(
       authMiddleware,
       NotificationsController.testConnection,
     )
-    .post("/test-email", authMiddleware, NotificationsController.sendTestEmail),
+    .post("/test-email", authMiddleware, NotificationsController.sendTestEmail)
+    .get("/user", authMiddleware, NotificationsController.getUserNotifications)
+    .patch("/:id/read", authMiddleware, NotificationsController.markAsRead)
+    .patch(
+      "/mark-all-read",
+      authMiddleware,
+      NotificationsController.markAllAsRead,
+    )
+    .get(
+      "/preferences",
+      authMiddleware,
+      NotificationsController.getUserPreferences,
+    )
+    .patch(
+      "/preferences",
+      authMiddleware,
+      NotificationsController.updateUserPreferences,
+    ),
 );
 
 // Attachments routes

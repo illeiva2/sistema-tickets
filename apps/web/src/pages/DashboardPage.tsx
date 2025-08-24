@@ -21,6 +21,13 @@ import { useDashboard } from "../hooks";
 
 const DashboardPage: React.FC = () => {
   const { stats, isLoading, refreshStats } = useDashboard();
+  // const { user } = useAuth(); // Not used currently
+
+  // Determinar el tipo de dashboard según el rol
+  // Role-based variables for future use
+  // const isUser = user?.role === 'USER';
+  // const isAgent = user?.role === 'AGENT';
+  // const isAdmin = user?.role === 'ADMIN';
 
   if (isLoading) {
     return (

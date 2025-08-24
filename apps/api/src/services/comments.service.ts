@@ -54,14 +54,11 @@ export class CommentsService {
     // Send notification to assignee if ticket is assigned and comment is not from assignee
     if (ticket.assignee && ticket.assignee.id !== authorId) {
       // Send notification asynchronously (don't block the response)
-      NotificationsService.notifyCommentAdded({
+      NotificationsService.notifyCommentAdded(
         ticketId,
-        ticketTitle: ticket.title,
-        ticketDescription: ticket.description,
-        assigneeName: ticket.assignee.name,
-        assigneeEmail: ticket.assignee.email,
-        commentText: message,
-      }).catch((error) => {
+        comment.id,
+        authorId,
+      ).catch((error) => {
         console.error("Failed to send comment notification:", error);
       });
     }

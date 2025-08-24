@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@forzani/ui";
 import { LogOut, Ticket, BarChart3, Plus, Home, Mail } from "lucide-react";
-import { useAuth } from "../hooks";
+import { useAuth, useNotifications } from "../hooks";
 
 // Componente de navegación con estado activo
 const NavLink = ({
@@ -81,6 +81,14 @@ const Breadcrumbs = () => {
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
+
+  // Solo cargar notificaciones si el usuario está autenticado
+  React.useEffect(() => {
+    if (user) {
+      // El hook se ejecutará automáticamente
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -120,6 +128,11 @@ const Layout: React.FC = () => {
               </NavLink>
               <NavLink to="/notifications" icon={<Mail size={16} />}>
                 Notificaciones
+                {unreadCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </NavLink>
             </nav>
           </div>

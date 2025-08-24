@@ -9,29 +9,32 @@ import NewTicketPage from "./pages/NewTicketPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardPage />} />
-          <Route path="tickets" element={<TicketsPage />} />
-          <Route path="tickets/new" element={<NewTicketPage />} />
-          <Route path="tickets/:id" element={<TicketDetailPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-        </Route>
-      </Routes>
-      <Toaster position="top-right" />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="tickets" element={<TicketsPage />} />
+            <Route path="tickets/new" element={<NewTicketPage />} />
+            <Route path="tickets/:id" element={<TicketDetailPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+          </Route>
+        </Routes>
+        <Toaster position="top-right" />
+      </div>
+    </ErrorBoundary>
   );
 }
 

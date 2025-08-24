@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../lib/api";
+import { useAuth } from "./useAuth";
 
 interface DashboardStats {
   totalTickets: number;
@@ -28,11 +29,21 @@ interface DashboardStats {
 export const useDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchDashboardStats = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get("/api/dashboard/stats");
+
+      // Endpoint diferenciado según el rol
+      let endpoint = "/api/dashboard/stats";
+      if (user?.role === "AGENT") {
+        endpoint = "/api/dashboard/agent-stats";
+      } else if (user?.role === "USER") {
+        endpoint = "/api/dashboard/user-stats";
+      }
+
+      const response = await api.get(endpoint);
       setStats(response.data.data);
     } catch (error: any) {
       console.error("Error fetching dashboard stats:", error);
@@ -42,8 +53,10 @@ export const useDashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+    if (user) {
+      fetchDashboardStats();
+    }
+  }, [user, fetchDashboardStats]);
 
   const refreshStats = () => {
     fetchDashboardStats();
