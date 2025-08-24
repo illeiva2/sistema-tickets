@@ -138,6 +138,16 @@ export class TicketsService {
       },
     });
 
+    // Audit log
+    await prisma.auditLog.create({
+      data: {
+        entity: "ticket",
+        entityId: ticket.id,
+        action: "ticket_created",
+        actorId: userId,
+      },
+    });
+
     logger.info(`Ticket created: ${ticket.id} by user: ${userId}`);
     return ticket;
   }
@@ -227,6 +237,45 @@ export class TicketsService {
         },
       },
     });
+
+    // Audit logs for notable updates
+    const logs: Array<Promise<any>> = [];
+    if (data.status) {
+      const action =
+        data.status === "RESOLVED" ? "ticket_resolved" : "ticket_updated";
+      logs.push(
+        prisma.auditLog.create({
+          data: { entity: "ticket", entityId: id, action, actorId: userId },
+        }),
+      );
+    }
+    if (Object.prototype.hasOwnProperty.call(data, "assigneeId")) {
+      logs.push(
+        prisma.auditLog.create({
+          data: {
+            entity: "ticket",
+            entityId: id,
+            action: "ticket_assigned_updated",
+            actorId: userId,
+          },
+        }),
+      );
+    }
+    if (Object.prototype.hasOwnProperty.call(data, "priority")) {
+      logs.push(
+        prisma.auditLog.create({
+          data: {
+            entity: "ticket",
+            entityId: id,
+            action: "ticket_priority_updated",
+            actorId: userId,
+          },
+        }),
+      );
+    }
+    if (logs.length > 0) {
+      await Promise.all(logs);
+    }
 
     logger.info(`Ticket updated: ${id} by user: ${userId}`);
     return updatedTicket;
