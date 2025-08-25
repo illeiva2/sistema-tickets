@@ -407,6 +407,7 @@ export const FileManagementPage: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <Badge
                       style={{ backgroundColor: tag.color, color: "white" }}
+                      className="px-3 py-1 text-sm font-medium"
                     >
                       {tag.name}
                     </Badge>
@@ -473,6 +474,7 @@ export const FileManagementPage: React.FC = () => {
                         backgroundColor: file.category.color,
                         color: "white",
                       }}
+                      className="px-3 py-1 text-sm font-medium"
                     >
                       {file.category.icon} {file.category.name}
                     </Badge>
@@ -483,6 +485,7 @@ export const FileManagementPage: React.FC = () => {
                         key={tag.id}
                         variant="outline"
                         style={{ borderColor: tag.color, color: tag.color }}
+                        className="px-3 py-1 text-sm font-medium"
                       >
                         {tag.name}
                       </Badge>

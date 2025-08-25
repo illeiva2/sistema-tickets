@@ -349,6 +349,7 @@ const TicketDetailPage: React.FC = () => {
                         variant={
                           ticket?.status === "CLOSED" ? "default" : "secondary"
                         }
+                        className="px-3 py-1 text-sm font-medium"
                       >
                         {ticket?.status === "OPEN" && "Abierto"}
                         {ticket?.status === "IN_PROGRESS" && "En progreso"}
@@ -408,7 +409,10 @@ const TicketDetailPage: React.FC = () => {
                 </label>
                 <div className="flex items-center space-x-2">
                   {user?.role === "USER" ? (
-                    <Badge variant="secondary">
+                    <Badge
+                      variant="secondary"
+                      className="px-3 py-1 text-sm font-medium"
+                    >
                       {ticket?.priority === "LOW" && "Baja"}
                       {ticket?.priority === "MEDIUM" && "Media"}
                       {ticket?.priority === "HIGH" && "Alta"}

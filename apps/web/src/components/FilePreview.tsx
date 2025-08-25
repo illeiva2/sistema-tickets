@@ -108,7 +108,10 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
             >
               {displayName}
             </h4>
-            <Badge variant="secondary" className="text-xs">
+            <Badge
+              variant="secondary"
+              className="px-3 py-1 text-sm font-medium"
+            >
               {fileType}
             </Badge>
           </div>

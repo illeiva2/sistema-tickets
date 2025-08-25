@@ -226,9 +226,12 @@ const UsersPage: React.FC = () => {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      USER: { color: "bg-blue-100 text-blue-800", icon: User },
-      AGENT: { color: "bg-green-100 text-green-800", icon: UserCheck },
-      ADMIN: { color: "bg-red-100 text-red-800", icon: Shield },
+      USER: { color: "bg-blue-100 text-blue-800 border-blue-200", icon: User },
+      AGENT: {
+        color: "bg-green-100 text-green-800 border-green-200",
+        icon: UserCheck,
+      },
+      ADMIN: { color: "bg-red-100 text-red-800 border-red-200", icon: Shield },
     };
 
     const config =
@@ -236,8 +239,11 @@ const UsersPage: React.FC = () => {
     const Icon = config.icon;
 
     return (
-      <Badge className={config.color}>
-        <Icon className="h-3 w-3 mr-1" />
+      <Badge
+        variant="outline"
+        className={`${config.color} px-3 py-1 text-xs font-medium`}
+      >
+        <Icon className="h-3 w-3 mr-2" />
         {role}
       </Badge>
     );

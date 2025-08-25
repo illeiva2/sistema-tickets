@@ -298,7 +298,12 @@ export const AdvancedFilePreview: React.FC<AdvancedFilePreviewProps> = ({
             <div>
               <CardTitle className="text-lg">{displayName}</CardTitle>
               <div className="flex items-center space-x-2 mt-1">
-                <Badge variant="secondary">{fileType}</Badge>
+                <Badge
+                  variant="secondary"
+                  className="px-3 py-1 text-sm font-medium"
+                >
+                  {fileType}
+                </Badge>
                 <span className="text-sm text-muted-foreground">{size}</span>
               </div>
             </div>
