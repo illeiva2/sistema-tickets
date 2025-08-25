@@ -1,8 +1,17 @@
 import React from "react";
 import { Outlet, Link, useLocation, useParams } from "react-router-dom";
 import { Button } from "@forzani/ui";
-import { LogOut, Ticket, BarChart3, Plus, Home, Mail } from "lucide-react";
-import { useAuth, useNotifications, useTickets } from "../hooks";
+import {
+  LogOut,
+  Ticket,
+  BarChart3,
+  Plus,
+  Home,
+  Mail,
+  Folder,
+} from "lucide-react";
+import { useAuth, useTickets } from "../hooks";
+import { useNotificationsContext } from "../contexts/NotificationsContext";
 
 // Componente de navegación con estado activo
 const NavLink = ({
@@ -111,7 +120,7 @@ const Breadcrumbs = () => {
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
-  const { unreadCount } = useNotifications();
+  const { unreadCount } = useNotificationsContext();
 
   // Solo cargar notificaciones si el usuario está autenticado
   React.useEffect(() => {
@@ -161,6 +170,9 @@ const Layout: React.FC = () => {
               </NavLink>
               <NavLink to="/tickets/new" icon={<Plus size={16} />}>
                 Nuevo Ticket
+              </NavLink>
+              <NavLink to="/files" icon={<Folder size={16} />}>
+                Archivos
               </NavLink>
               <NavLink to="/notifications" icon={<Mail size={16} />}>
                 Notificaciones

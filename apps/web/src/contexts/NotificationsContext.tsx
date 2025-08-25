@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import api from "../lib/api";
 import { toast } from "react-hot-toast";
 
@@ -26,41 +32,62 @@ export interface NotificationPreferences {
   priorityChanged: boolean;
 }
 
-export const useNotifications = () => {
+interface NotificationsContextType {
+  notifications: Notification[];
+  preferences: NotificationPreferences | null;
+  unreadCount: number;
+  isLoading: boolean;
+  markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  updatePreferences: (
+    newPreferences: Partial<NotificationPreferences>,
+  ) => Promise<void>;
+  testEmailConnection: () => Promise<boolean>;
+  sendTestEmail: (
+    to: string,
+    subject: string,
+    message: string,
+  ) => Promise<boolean>;
+  refreshNotifications: () => Promise<void>;
+}
+
+const NotificationsContext = createContext<
+  NotificationsContextType | undefined
+>(undefined);
+
+export const useNotificationsContext = () => {
+  const context = useContext(NotificationsContext);
+  if (!context) {
+    throw new Error(
+      "useNotificationsContext must be used within a NotificationsProvider",
+    );
+  }
+  return context;
+};
+
+export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [preferences, setPreferences] =
     useState<NotificationPreferences | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-  const [notificationsLoaded, setNotificationsLoaded] = useState(false);
 
   // Fetch user notifications
   const fetchNotifications = useCallback(async () => {
-    if (notificationsLoaded) {
-      console.log("Notifications already loaded, skipping...");
-      return;
-    }
-
     setIsLoading(true);
     try {
-      console.log("Fetching notifications...");
       const response = await api.get("/api/notifications/user");
       if (response.data.success) {
         setNotifications(response.data.data);
-        setNotificationsLoaded(true);
-        console.log(
-          "Notifications loaded:",
-          response.data.data.length,
-          "items",
-        );
       }
     } catch (error: any) {
       console.error("Error fetching notifications:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [notificationsLoaded]);
+  }, []);
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
@@ -72,8 +99,6 @@ export const useNotifications = () => {
         setNotifications((prev) =>
           prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
         );
-        // Update unread count
-        setUnreadCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error: any) {
       console.error("Error marking notification as read:", error);
@@ -86,8 +111,6 @@ export const useNotifications = () => {
       const response = await api.patch("/api/notifications/mark-all-read");
       if (response.data.success) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        // Update unread count
-        setUnreadCount(0);
       }
     } catch (error: any) {
       console.error("Error marking all notifications as read:", error);
@@ -166,56 +189,38 @@ export const useNotifications = () => {
     return false;
   };
 
-  // Fetch user preferences
-  const fetchPreferences = useCallback(async () => {
-    if (preferencesLoaded) {
-      console.log("Preferences already loaded, skipping...");
-      return;
-    }
-
-    try {
-      console.log("Fetching preferences...");
-      const response = await api.get("/api/notifications/preferences");
-      if (response.data.success) {
-        setPreferences(response.data.data);
-        setPreferencesLoaded(true);
-        console.log("Preferences loaded:", response.data.data);
-      }
-    } catch (error: any) {
-      console.error("Error fetching preferences:", error);
-    }
-  }, [preferencesLoaded]);
-
-  // Load notifications and preferences on mount
-  useEffect(() => {
-    console.log("useNotifications useEffect triggered");
-    fetchNotifications();
-    fetchPreferences();
-  }, [fetchNotifications, fetchPreferences]); // Incluir dependencias
+  // Refresh notifications
+  const refreshNotifications = useCallback(async () => {
+    await fetchNotifications();
+  }, [fetchNotifications]);
 
   // Calculate unread count when notifications change
   useEffect(() => {
     const count = notifications.filter((n) => !n.read).length;
     setUnreadCount(count);
-    console.log("Unread count updated:", count);
   }, [notifications]);
 
-  return {
-    // Data
+  // Fetch notifications on mount
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  const value: NotificationsContextType = {
     notifications,
     preferences,
-    isLoading,
     unreadCount,
-
-    // Actions
-    fetchNotifications,
-    fetchPreferences,
+    isLoading,
     markAsRead,
     markAllAsRead,
     updatePreferences,
-
-    // Admin functions
     testEmailConnection,
     sendTestEmail,
+    refreshNotifications,
   };
+
+  return (
+    <NotificationsContext.Provider value={value}>
+      {children}
+    </NotificationsContext.Provider>
+  );
 };

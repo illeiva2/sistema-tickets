@@ -99,6 +99,7 @@ model Attachment {
 
   // Relations
   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  organizations FileOrganization[]
 
   @@map("attachments")
 }
@@ -152,4 +153,49 @@ model NotificationPreferences {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
+}
+
+model FileCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String   @default("#3B82F6")
+  icon        String   @default("📁")
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  parent     FileCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   FileCategory[] @relation("CategoryHierarchy")
+  organizations FileOrganization[]
+
+  @@map("file_categories")
+}
+
+model FileTag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String   @default("#6B7280")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("file_tags")
+}
+
+model FileOrganization {
+  id           String   @id @default(cuid())
+  attachmentId String   @unique
+  categoryId   String?
+  tags         String[] // Array de IDs de etiquetas
+  customPath   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  attachment Attachment   @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+  category   FileCategory? @relation(fields: [categoryId], references: [id])
+
+  @@map("file_organizations")
 }

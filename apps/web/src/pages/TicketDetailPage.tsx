@@ -18,8 +18,10 @@ import {
   Clock,
 } from "lucide-react";
 import { useTickets, useAuth } from "../hooks";
-import api, { API_URL } from "../lib/api";
-import { toast } from "react-hot-toast";
+import FileUploadZone from "../components/FileUploadZone";
+import AdvancedFilePreview from "../components/AdvancedFilePreview";
+import api from "../lib/api";
+import toast from "react-hot-toast";
 
 const TicketDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -33,8 +35,6 @@ const TicketDetailPage: React.FC = () => {
   const isAdmin = user?.role === "ADMIN";
   const [commentText, setCommentText] = useState("");
   const [adding, setAdding] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [agents, setAgents] = useState<
     Array<{ id: string; name: string; email: string }>
   >([]);
@@ -512,102 +512,64 @@ const TicketDetailPage: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pt-4 pb-2">
-              {/* Uploader */}
-              <div className="flex items-center space-x-2 mb-3">
-                <input
-                  type="file"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    setSelectedFile(file);
-                  }}
-                />
-                {selectedFile && (
-                  <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                    {selectedFile.name}
-                  </span>
-                )}
-                <Button
-                  className="px-2 py-1 text-sm"
-                  variant="outline"
-                  size="sm"
-                  disabled={!selectedFile || uploading || !ticket}
-                  onClick={async () => {
-                    if (!selectedFile || !ticket) return;
-                    const form = new FormData();
-                    form.append("file", selectedFile);
-                    try {
-                      setUploading(true);
-                      const resp = await api.post(
-                        `/api/attachments/${ticket.id}`,
-                        form,
-                        {
-                          headers: { "Content-Type": "multipart/form-data" },
-                        },
-                      );
-                      const created = resp.data?.data;
-                      if (created) {
-                        setTicket((prev: any) => {
-                          if (!prev) return prev;
-                          const attachments = prev.attachments
-                            ? [created, ...prev.attachments]
-                            : [created];
-                          return { ...prev, attachments };
-                        });
-                        setSelectedFile(null);
-                      }
-                    } finally {
-                      setUploading(false);
-                    }
-                  }}
-                >
-                  {uploading ? "Subiendo..." : "Subir"}
-                </Button>
-              </div>
+              {/* Zona de upload con drag & drop */}
+              <FileUploadZone
+                ticketId={id!}
+                maxFiles={20}
+                maxSize={10 * 1024 * 1024} // 10MB
+                onSuccess={(newAttachments) => {
+                  setTicket((prev: any) => {
+                    if (!prev) return prev;
+                    const attachments = prev.attachments
+                      ? [...newAttachments, ...prev.attachments]
+                      : newAttachments;
+                    return { ...prev, attachments };
+                  });
+                }}
+                onError={(error) => {
+                  console.error("Error uploading files:", error);
+                }}
+                className="mb-4"
+              />
 
+              {/* Lista de archivos existentes */}
               {ticket?.attachments && ticket.attachments.length > 0 ? (
-                <div className="space-y-2">
-                  {ticket.attachments.map((a: any) => (
-                    <div
-                      key={a.id}
-                      className="flex items-center justify-between border rounded p-2"
-                    >
-                      <a
-                        href={`${API_URL}${a.storageUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm underline"
-                      >
-                        {a.fileName} ({Math.round((a.sizeBytes || 0) / 1024)}{" "}
-                        KB)
-                      </a>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          await api.delete(`/api/attachments/${a.id}`);
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    Archivos adjuntos ({ticket.attachments.length})
+                  </h4>
+                  {ticket.attachments.map((attachment: any) => (
+                    <AdvancedFilePreview
+                      key={attachment.id}
+                      attachment={attachment}
+                      onDelete={async (attachmentId) => {
+                        try {
+                          await api.delete(`/api/attachments/${attachmentId}`);
                           setTicket((prev: any) => {
                             if (!prev) return prev;
                             const attachments = (prev.attachments || []).filter(
-                              (x: any) => x.id !== a.id,
+                              (a: any) => a.id !== attachmentId,
                             );
                             return { ...prev, attachments };
                           });
-                        }}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
+                          toast.success("Archivo eliminado correctamente");
+                        } catch (error: any) {
+                          const message =
+                            error.response?.data?.error?.message ||
+                            "Error al eliminar archivo";
+                          toast.error(message);
+                        }
+                      }}
+                    />
                   ))}
                 </div>
               ) : (
-                <Card className="px-2">
-                  <EmptyState
-                    icon={<Paperclip size={32} />}
-                    title="Sin archivos"
-                    description="No se han adjuntado archivos a este ticket."
-                    action={null}
-                  />
-                </Card>
+                <EmptyState
+                  icon={<Paperclip size={32} />}
+                  title="Sin archivos"
+                  description="No se han adjuntado archivos a este ticket."
+                  action={null}
+                />
               )}
             </CardContent>
           </Card>

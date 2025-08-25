@@ -7,9 +7,11 @@ import TicketsPage from "./pages/TicketsPage";
 import TicketDetailPage from "./pages/TicketDetailPage";
 import NewTicketPage from "./pages/NewTicketPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import FileManagementPage from "./pages/FileManagementPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { NotificationsProvider } from "./contexts/NotificationsContext";
 
 function App() {
   return (
@@ -21,7 +23,9 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Layout />
+                <NotificationsProvider>
+                  <Layout />
+                </NotificationsProvider>
               </ProtectedRoute>
             }
           >
@@ -30,6 +34,7 @@ function App() {
             <Route path="tickets/new" element={<NewTicketPage />} />
             <Route path="tickets/:id" element={<TicketDetailPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="files" element={<FileManagementPage />} />
           </Route>
         </Routes>
         <Toaster position="top-right" />

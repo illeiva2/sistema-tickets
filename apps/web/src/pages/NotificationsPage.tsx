@@ -9,10 +9,10 @@ import {
 import { Button } from "@forzani/ui";
 import { Input } from "@forzani/ui";
 import {
-  useNotifications,
+  useNotificationsContext,
   type Notification,
   type NotificationPreferences,
-} from "../hooks/useNotifications";
+} from "../contexts/NotificationsContext";
 import {
   Mail,
   Send,
@@ -27,7 +27,7 @@ import {
   User,
   Shield,
 } from "lucide-react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
@@ -35,13 +35,13 @@ export default function NotificationsPage() {
     notifications,
     preferences,
     isLoading,
-    fetchNotifications,
+    refreshNotifications,
     markAsRead,
     markAllAsRead,
     updatePreferences,
     testEmailConnection,
     sendTestEmail,
-  } = useNotifications();
+  } = useNotificationsContext();
 
   const [activeTab, setActiveTab] = useState<
     "notifications" | "preferences" | "admin"
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
             </h2>
             <div className="flex space-x-2">
               <Button
-                onClick={fetchNotifications}
+                onClick={refreshNotifications}
                 disabled={isLoading}
                 variant="outline"
                 size="sm"

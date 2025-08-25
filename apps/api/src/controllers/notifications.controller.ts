@@ -3,6 +3,7 @@ import { NotificationsService } from "../services/notifications.service";
 import { verifyEmailConnection } from "../config/email";
 import { ApiError } from "../lib/errors";
 import { config } from "../config";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 export class NotificationsController {
   /**
@@ -112,7 +113,7 @@ export class NotificationsController {
   /**
    * Obtener notificaciones del usuario
    */
-  static async getUserNotifications(req: Request, res: Response) {
+  static async getUserNotifications(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -144,7 +145,7 @@ export class NotificationsController {
   /**
    * Marcar notificación como leída
    */
-  static async markAsRead(req: Request, res: Response) {
+  static async markAsRead(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       const { id } = req.params;
@@ -186,7 +187,7 @@ export class NotificationsController {
   /**
    * Marcar todas las notificaciones como leídas
    */
-  static async markAllAsRead(req: Request, res: Response) {
+  static async markAllAsRead(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -223,7 +224,7 @@ export class NotificationsController {
   /**
    * Obtener preferencias de notificaciones del usuario
    */
-  static async getUserPreferences(req: Request, res: Response) {
+  static async getUserPreferences(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -252,7 +253,7 @@ export class NotificationsController {
   /**
    * Actualizar preferencias de notificaciones del usuario
    */
-  static async updateUserPreferences(req: Request, res: Response) {
+  static async updateUserPreferences(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       const updates = req.body;

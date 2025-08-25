@@ -4,6 +4,8 @@ import { logger } from "../lib/logger";
 import { UserRole } from "@prisma/client";
 import { TicketFilters } from "../validations/tickets";
 import { NotificationsService } from "./notifications.service";
+import FilePreviewService from "./filePreview.service";
+import path from "path";
 
 type StatusLiteral = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 
@@ -119,6 +121,55 @@ export class TicketsService {
         "No tienes permisos para ver este ticket",
         403,
       );
+    }
+
+    // Enriquecer attachments con información de vista previa
+    if (ticket.attachments && ticket.attachments.length > 0) {
+      const enrichedAttachments = await Promise.all(
+        ticket.attachments.map(async (attachment: any) => {
+          try {
+            const filePath = path.join(process.cwd(), attachment.storageUrl);
+            const previewInfo = await FilePreviewService.getFilePreviewInfo(
+              filePath,
+              attachment.mimeType,
+              attachment.fileName,
+            );
+
+            const displayInfo = FilePreviewService.getFileDisplayInfo(
+              attachment.fileName,
+              attachment.mimeType,
+              attachment.sizeBytes,
+            );
+
+            return {
+              ...attachment,
+              previewInfo,
+              displayInfo,
+            };
+          } catch (error) {
+            console.error(
+              `Error enriching attachment ${attachment.id}:`,
+              error,
+            );
+            // Fallback a información básica
+            return {
+              ...attachment,
+              previewInfo: {
+                type: "other",
+                canPreview: false,
+                icon: "📎",
+              },
+              displayInfo: FilePreviewService.getFileDisplayInfo(
+                attachment.fileName,
+                attachment.mimeType,
+                attachment.sizeBytes,
+              ),
+            };
+          }
+        }),
+      );
+
+      ticket.attachments = enrichedAttachments;
     }
 
     return ticket;
@@ -411,6 +462,81 @@ export class TicketsService {
     );
 
     logger.info(`Ticket closed: ${id} by user: ${userId}`);
+    return updatedTicket;
+  }
+
+  static async reopenTicket(
+    id: string,
+    userId: string,
+    userRole: UserRole,
+    comment: string,
+  ) {
+    const ticket = await prisma.ticket.findUnique({ where: { id } });
+    if (!ticket) {
+      throw new ApiError("TICKET_NOT_FOUND", "Ticket no encontrado", 404);
+    }
+
+    // Only AGENTS and ADMIN can reopen tickets
+    if (userRole === UserRole.USER) {
+      throw new ApiError(
+        "FORBIDDEN",
+        "Solo los agentes y administradores pueden reabrir tickets",
+        403,
+      );
+    }
+
+    // Validate comment is provided
+    if (!comment || comment.trim().length === 0) {
+      throw new ApiError(
+        "MISSING_COMMENT",
+        "Debes proporcionar un comentario para reabrir el ticket",
+        400,
+      );
+    }
+
+    // Create the reopening comment
+    await prisma.comment.create({
+      data: {
+        ticketId: id,
+        authorId: userId,
+        message: `[TICKET REABIERTO] ${comment}`,
+      },
+    });
+
+    // Update ticket status to OPEN
+    const updatedTicket = await prisma.ticket.update({
+      where: { id },
+      data: {
+        status: "OPEN",
+        closedAt: null,
+      },
+      include: {
+        requester: {
+          select: { id: true, name: true, email: true },
+        },
+        assignee: {
+          select: { id: true, name: true, email: true },
+        },
+        comments: {
+          include: {
+            author: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+
+    // Send notification about ticket reopening
+    await NotificationsService.notifyStatusChanged(
+      id,
+      ticket.status,
+      "OPEN",
+      userId,
+    );
+
+    logger.info(`Ticket reopened: ${id} by user: ${userId}`);
     return updatedTicket;
   }
 

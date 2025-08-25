@@ -16,6 +16,12 @@ import AttachmentsController from "./controllers/attachments.controller";
 import DashboardController from "./controllers/dashboard.controller";
 import { NotificationsController } from "./controllers/notifications.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
+import {
+  secureFileServing,
+  fileExists,
+  authenticateFileAccess,
+} from "./middleware/fileServing";
+import FileOrganizationController from "./controllers/fileOrganization.controller";
 // Using literal role strings to avoid enum import issues in some environments
 
 const app = express();
@@ -71,7 +77,32 @@ if (config.server.nodeEnv === "production") {
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 // Static uploads
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use(
+  "/uploads",
+  authenticateFileAccess,
+  secureFileServing,
+  fileExists,
+  express.static(path.join(process.cwd(), "uploads")),
+);
+app.use(
+  "/thumbnails",
+  authenticateFileAccess,
+  express.static(path.join(process.cwd(), "thumbnails")),
+);
+
+// Ruta para servir archivos con autenticación (para vistas previas)
+app.get(
+  "/api/files/:fileName",
+  authMiddleware,
+  AttachmentsController.serveFile,
+);
+
+// Ruta para servir thumbnails con autenticación
+app.get(
+  "/api/thumbnails/:fileName",
+  authMiddleware,
+  AttachmentsController.serveThumbnail,
+);
 
 // Request ID middleware
 app.use(requestIdMiddleware);
@@ -116,6 +147,7 @@ app.use(
     .post("/", authMiddleware, ...TicketsController.createTicket)
     .patch("/:id", authMiddleware, ...TicketsController.updateTicket)
     .post("/:id/close", authMiddleware, ...TicketsController.closeTicket)
+    .post("/:id/reopen", authMiddleware, ...TicketsController.reopenTicket)
     .delete(
       "/:id",
       authMiddleware,
@@ -161,6 +193,48 @@ app.use(
     ),
 );
 
+// Rutas de organización de archivos
+app.use("/api/file-organization", authMiddleware, (req, res, next) => {
+  const router = express.Router();
+
+  // Categorías
+  router.post("/categories", FileOrganizationController.createCategory);
+  router.get("/categories", FileOrganizationController.getCategories);
+  router.get(
+    "/categories/hierarchy",
+    FileOrganizationController.getCategoriesHierarchy,
+  );
+  router.put(
+    "/categories/:categoryId",
+    FileOrganizationController.updateCategory,
+  );
+  router.delete(
+    "/categories/:categoryId",
+    FileOrganizationController.deleteCategory,
+  );
+
+  // Etiquetas
+  router.post("/tags", FileOrganizationController.createTag);
+  router.get("/tags", FileOrganizationController.getTags);
+  router.put("/tags/:tagId", FileOrganizationController.updateTag);
+  router.delete("/tags/:tagId", FileOrganizationController.deleteTag);
+
+  // Organización
+  router.post(
+    "/files/:attachmentId/organize",
+    FileOrganizationController.organizeFile,
+  );
+  router.get(
+    "/categories/:categoryId/files",
+    FileOrganizationController.getFilesByCategory,
+  );
+  router.get("/tags/:tagName/files", FileOrganizationController.getFilesByTag);
+  router.get("/search", FileOrganizationController.searchFiles);
+  router.get("/stats", FileOrganizationController.getOrganizationStats);
+
+  router(req, res, next);
+});
+
 // Attachments routes
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -177,7 +251,14 @@ app.use(
       upload.single("file"),
       AttachmentsController.upload,
     )
-    .delete("/:id", authMiddleware, AttachmentsController.remove),
+    .delete("/:id", authMiddleware, ...AttachmentsController.remove)
+    .get("/:id/info", authMiddleware, AttachmentsController.getInfo)
+    .get("/:id/exists", authMiddleware, AttachmentsController.checkExists)
+    .get(
+      "/validation/config",
+      authMiddleware,
+      AttachmentsController.getValidationConfig,
+    ),
 );
 
 // 404 handler
