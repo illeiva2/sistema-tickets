@@ -9,6 +9,7 @@ import {
   Home,
   Mail,
   Folder,
+  Users,
 } from "lucide-react";
 import { useAuth, useTickets } from "../hooks";
 import { useNotificationsContext } from "../contexts/NotificationsContext";
@@ -182,6 +183,11 @@ const Layout: React.FC = () => {
                   </span>
                 )}
               </NavLink>
+              {user?.role === "ADMIN" && (
+                <NavLink to="/users" icon={<Users size={16} />}>
+                  Usuarios
+                </NavLink>
+              )}
             </nav>
           </div>
           <div className="flex items-center space-x-4">

@@ -160,7 +160,16 @@ app.use(
 
 app.use(
   "/api/users",
-  express.Router().get("/agents", authMiddleware, UsersController.listAgents),
+  express
+    .Router()
+    .get("/", authMiddleware, UsersController.listUsers)
+    .get("/agents", authMiddleware, UsersController.listAgents)
+    .get("/:id", authMiddleware, UsersController.getUserById)
+    .post("/", authMiddleware, UsersController.createUser)
+    .patch("/:id", authMiddleware, UsersController.updateUser)
+    .patch("/:id/password", authMiddleware, UsersController.changePassword)
+    .delete("/:id", authMiddleware, UsersController.deleteUser)
+    .get("/:id/stats", authMiddleware, UsersController.getUserStats),
 );
 
 app.use(

@@ -8,6 +8,7 @@ import TicketDetailPage from "./pages/TicketDetailPage";
 import NewTicketPage from "./pages/NewTicketPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import FileManagementPage from "./pages/FileManagementPage";
+import UsersPage from "./pages/UsersPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -35,6 +36,7 @@ function App() {
             <Route path="tickets/:id" element={<TicketDetailPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="files" element={<FileManagementPage />} />
+            <Route path="users" element={<UsersPage />} />
           </Route>
         </Routes>
         <Toaster position="top-right" />
