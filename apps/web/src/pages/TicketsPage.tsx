@@ -213,12 +213,7 @@ const TicketsPage: React.FC = () => {
               <option value="desc">Desc</option>
               <option value="asc">Asc</option>
             </select>
-            <Button
-              onClick={() => fetchTickets({ filters })}
-              className="px-4 py-2"
-            >
-              Aplicar Filtros
-            </Button>
+
             <Button
               variant="outline"
               onClick={() => {

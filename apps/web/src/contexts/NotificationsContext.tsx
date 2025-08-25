@@ -89,6 +89,18 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  // Fetch user notification preferences
+  const fetchPreferences = useCallback(async () => {
+    try {
+      const response = await api.get("/api/notifications/preferences");
+      if (response.data.success) {
+        setPreferences(response.data.data);
+      }
+    } catch (error: any) {
+      console.error("Error fetching preferences:", error);
+    }
+  }, []);
+
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
     try {
@@ -200,10 +212,11 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     setUnreadCount(count);
   }, [notifications]);
 
-  // Fetch notifications on mount
+  // Fetch notifications and preferences on mount
   useEffect(() => {
     fetchNotifications();
-  }, [fetchNotifications]);
+    fetchPreferences();
+  }, [fetchNotifications, fetchPreferences]);
 
   const value: NotificationsContextType = {
     notifications,
