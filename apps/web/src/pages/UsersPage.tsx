@@ -352,7 +352,7 @@ const UsersPage: React.FC = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{user.name}</CardTitle>
-                {getRoleBadge(user.role)}
+                <div className="ml-4">{getRoleBadge(user.role)}</div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
