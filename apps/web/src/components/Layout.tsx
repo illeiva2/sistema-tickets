@@ -1,8 +1,18 @@
 import React from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useParams } from "react-router-dom";
 import { Button } from "@forzani/ui";
-import { LogOut, Ticket, BarChart3, Plus, Home, Mail } from "lucide-react";
-import { useAuth } from "../hooks";
+import {
+  LogOut,
+  Ticket,
+  BarChart3,
+  Plus,
+  Home,
+  Mail,
+  Folder,
+  Users,
+} from "lucide-react";
+import { useAuth, useTickets } from "../hooks";
+import { useNotificationsContext } from "../contexts/NotificationsContext";
 
 // Componente de navegación con estado activo
 const NavLink = ({
@@ -36,6 +46,26 @@ const NavLink = ({
 const Breadcrumbs = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
+  const { id: ticketId } = useParams();
+  const { getTicketById } = useTickets();
+  const [ticketNumber, setTicketNumber] = React.useState<string | null>(null);
+
+  // Si estamos en la página de detalle de un ticket, obtener el número
+  React.useEffect(() => {
+    if (ticketId && pathnames.length === 2 && pathnames[0] === "tickets") {
+      const fetchTicketNumber = async () => {
+        try {
+          const ticket = await getTicketById(ticketId);
+          if (ticket?.ticketNumber) {
+            setTicketNumber(ticket.ticketNumber.toString().padStart(5, "0"));
+          }
+        } catch (error) {
+          console.error("Error fetching ticket number:", error);
+        }
+      };
+      fetchTicketNumber();
+    }
+  }, [ticketId, pathnames, getTicketById]);
 
   if (pathnames.length === 0) return null;
 
@@ -53,12 +83,22 @@ const Breadcrumbs = () => {
         const isLast = index === pathnames.length - 1;
 
         // Mapear nombres más amigables
-        const displayName =
+        let displayName =
           {
             tickets: "Tickets",
             new: "Nuevo",
             login: "Iniciar Sesión",
           }[name] || name;
+
+        // Si es el último elemento y estamos en la página de detalle de un ticket, mostrar el número
+        if (
+          isLast &&
+          ticketNumber &&
+          pathnames.length === 2 &&
+          pathnames[0] === "tickets"
+        ) {
+          displayName = `${ticketNumber}`;
+        }
 
         return (
           <React.Fragment key={name}>
@@ -81,6 +121,20 @@ const Breadcrumbs = () => {
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotificationsContext();
+
+  // Solo cargar notificaciones si el usuario está autenticado
+  React.useEffect(() => {
+    if (user) {
+      // El hook se ejecutará automáticamente
+      console.log("Layout: User authenticated, notifications should load");
+    }
+  }, [user]);
+
+  // Debug: log unreadCount changes
+  React.useEffect(() => {
+    console.log("Layout: unreadCount changed to:", unreadCount);
+  }, [unreadCount]);
 
   const handleLogout = () => {
     logout();
@@ -118,9 +172,22 @@ const Layout: React.FC = () => {
               <NavLink to="/tickets/new" icon={<Plus size={16} />}>
                 Nuevo Ticket
               </NavLink>
+              <NavLink to="/files" icon={<Folder size={16} />}>
+                Archivos
+              </NavLink>
               <NavLink to="/notifications" icon={<Mail size={16} />}>
                 Notificaciones
+                {unreadCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </NavLink>
+              {user?.role === "ADMIN" && (
+                <NavLink to="/users" icon={<Users size={16} />}>
+                  Usuarios
+                </NavLink>
+              )}
             </nav>
           </div>
           <div className="flex items-center space-x-4">

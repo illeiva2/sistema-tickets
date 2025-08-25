@@ -57,7 +57,12 @@ export const useAuth = (): AuthContextType => {
   const login = async (credentials: LoginCredentials) => {
     try {
       setIsLoading(true);
+      console.log("Attempting login with:", credentials.email);
+      console.log("API URL:", api.defaults.baseURL);
+      console.log("Request payload:", credentials);
+
       const response = await api.post("/api/auth/login", credentials);
+      console.log("Login response:", response.data);
       const { accessToken, refreshToken, user: userData } = response.data.data;
 
       localStorage.setItem("accessToken", accessToken);
@@ -68,10 +73,19 @@ export const useAuth = (): AuthContextType => {
       toast.success("Inicio de sesión exitoso");
       navigate("/");
     } catch (error: any) {
+      console.error("Login error:", error);
+      console.error(
+        "Error response:",
+        JSON.stringify(error.response?.data, null, 2),
+      );
+      console.error("Error status:", error.response?.status);
+      console.error("Error headers:", error.response?.headers);
+
       const message =
         error.response?.data?.error?.message || "Error al iniciar sesión";
       toast.error(message);
-      throw error;
+      // No lanzar el error para evitar que se reinicie la página
+      return;
     } finally {
       setIsLoading(false);
     }

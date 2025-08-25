@@ -17,33 +17,54 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
-import { useTickets } from "../hooks";
-import api, { API_URL } from "../lib/api";
+import { useTickets, useAuth } from "../hooks";
+import FileUploadZone from "../components/FileUploadZone";
+import AdvancedFilePreview from "../components/AdvancedFilePreview";
+import api from "../lib/api";
+import toast from "react-hot-toast";
 
 const TicketDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getTicketById, addComment } = useTickets();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [ticket, setTicket] = useState<any | null>(null);
+
+  // Determinar si el usuario es admin
+  const isAdmin = user?.role === "ADMIN";
   const [commentText, setCommentText] = useState("");
   const [adding, setAdding] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [agents, setAgents] = useState<
     Array<{ id: string; name: string; email: string }>
   >([]);
   const [saving, setSaving] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [closeComment, setCloseComment] = useState("");
+
+  // Función para formatear el número del ticket
+  const formatTicketNumber = (ticketNumber: number) => {
+    return ticketNumber.toString().padStart(5, "0");
+  };
 
   React.useEffect(() => {
     let cancelled = false;
     const load = async () => {
       if (!id) return;
-      setIsLoading(true);
-      const t = await getTicketById(id);
-      if (!cancelled) {
-        setTicket(t);
-        setIsLoading(false);
+      try {
+        setIsLoading(true);
+        console.log("Loading ticket with ID:", id);
+        const t = await getTicketById(id);
+        console.log("Ticket loaded:", t);
+        if (!cancelled) {
+          setTicket(t);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error loading ticket:", error);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
     load();
@@ -67,6 +88,34 @@ const TicketDetailPage: React.FC = () => {
     loadAgents();
   }, []);
 
+  // Función para cerrar ticket
+  const handleCloseTicket = async () => {
+    if (!closeComment.trim()) {
+      toast.error("Debes proporcionar un comentario para cerrar el ticket");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await api.post(`/api/tickets/${id}/close`, {
+        comment: closeComment.trim(),
+      });
+
+      if (response.data.success) {
+        toast.success("Ticket cerrado correctamente");
+        setTicket(response.data.data);
+        setShowCloseModal(false);
+        setCloseComment("");
+      }
+    } catch (error: any) {
+      const message =
+        error.response?.data?.error?.message || "Error al cerrar el ticket";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -80,7 +129,12 @@ const TicketDetailPage: React.FC = () => {
             Volver
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Ticket #{id}</h1>
+            <h1 className="text-3xl font-bold">
+              Ticket #
+              {ticket?.ticketNumber
+                ? formatTicketNumber(ticket.ticketNumber)
+                : "..."}
+            </h1>
             <p className="text-muted-foreground">Detalles del ticket</p>
           </div>
         </div>
@@ -133,17 +187,32 @@ const TicketDetailPage: React.FC = () => {
           Volver
         </Button>
         <div>
-          <h1 className="text-3xl font-bold px-2">Ticket #{id}</h1>
+          <h1 className="text-3xl font-bold px-2">
+            Ticket #
+            {ticket?.ticketNumber
+              ? formatTicketNumber(ticket.ticketNumber)
+              : "..."}
+          </h1>
           <h2 className="text-muted-foreground px-2 pt-1">
             Detalles del ticket
           </h2>
         </div>
-        <div className="ml-auto flex space-x-2">
-          <Button variant="outline" className="px-2 py-1 text-sm" size="sm">
-            <Edit size={16} className="mr-2" />
-            Editar
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="ml-auto flex space-x-2">
+            <Button
+              variant="outline"
+              className="px-2 py-1 text-sm"
+              size="sm"
+              onClick={() => {
+                // TODO: Implementar modal de edición
+                alert("Funcionalidad de edición en desarrollo");
+              }}
+            >
+              <Edit size={16} className="mr-2" />
+              Editar
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -274,35 +343,62 @@ const TicketDetailPage: React.FC = () => {
                   Estado
                 </label>
                 <div className="flex items-center space-x-2">
-                  <select
-                    className="px-2 py-1 border rounded-md text-sm"
-                    value={ticket?.status || "OPEN"}
-                    onChange={async (e) => {
-                      if (!ticket) return;
-                      setSaving(true);
-                      try {
-                        const resp = await api.patch(
-                          `/api/tickets/${ticket.id}`,
-                          { status: e.target.value },
-                        );
-                        setTicket((prev: any) => ({
-                          ...(prev || {}),
-                          ...(resp.data?.data || {}),
-                        }));
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  >
-                    <option value="OPEN">Abierto</option>
-                    <option value="IN_PROGRESS">En progreso</option>
-                    <option value="RESOLVED">Resuelto</option>
-                    <option value="CLOSED">Cerrado</option>
-                  </select>
-                  {saving && (
-                    <span className="text-xs text-muted-foreground">
-                      Guardando...
-                    </span>
+                  {user?.role === "USER" ? (
+                    <div className="flex items-center space-x-2">
+                      <Badge
+                        variant={
+                          ticket?.status === "CLOSED" ? "default" : "secondary"
+                        }
+                        className="px-3 py-1 text-sm font-medium"
+                      >
+                        {ticket?.status === "OPEN" && "Abierto"}
+                        {ticket?.status === "IN_PROGRESS" && "En progreso"}
+                        {ticket?.status === "RESOLVED" && "Resuelto"}
+                        {ticket?.status === "CLOSED" && "Cerrado"}
+                      </Badge>
+                      {ticket?.status !== "CLOSED" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowCloseModal(true)}
+                        >
+                          Cerrar Ticket
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        className="px-2 py-1 border rounded-md text-sm"
+                        value={ticket?.status || "OPEN"}
+                        onChange={async (e) => {
+                          if (!ticket) return;
+                          setSaving(true);
+                          try {
+                            const resp = await api.patch(
+                              `/api/tickets/${ticket.id}`,
+                              { status: e.target.value },
+                            );
+                            setTicket((prev: any) => ({
+                              ...(prev || {}),
+                              ...(resp.data?.data || {}),
+                            }));
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                      >
+                        <option value="OPEN">Abierto</option>
+                        <option value="IN_PROGRESS">En progreso</option>
+                        <option value="RESOLVED">Resuelto</option>
+                        <option value="CLOSED">Cerrado</option>
+                      </select>
+                      {saving && (
+                        <span className="text-xs text-muted-foreground">
+                          Guardando...
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -312,31 +408,43 @@ const TicketDetailPage: React.FC = () => {
                   Prioridad
                 </label>
                 <div className="flex items-center space-x-2">
-                  <select
-                    className="px-2 py-1 border rounded-md text-sm"
-                    value={ticket?.priority || "MEDIUM"}
-                    onChange={async (e) => {
-                      if (!ticket) return;
-                      setSaving(true);
-                      try {
-                        const resp = await api.patch(
-                          `/api/tickets/${ticket.id}`,
-                          { priority: e.target.value },
-                        );
-                        setTicket((prev: any) => ({
-                          ...(prev || {}),
-                          ...(resp.data?.data || {}),
-                        }));
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  >
-                    <option value="LOW">Baja</option>
-                    <option value="MEDIUM">Media</option>
-                    <option value="HIGH">Alta</option>
-                    <option value="URGENT">Urgente</option>
-                  </select>
+                  {user?.role === "USER" ? (
+                    <Badge
+                      variant="secondary"
+                      className="px-3 py-1 text-sm font-medium"
+                    >
+                      {ticket?.priority === "LOW" && "Baja"}
+                      {ticket?.priority === "MEDIUM" && "Media"}
+                      {ticket?.priority === "HIGH" && "Alta"}
+                      {ticket?.priority === "URGENT" && "Urgente"}
+                    </Badge>
+                  ) : (
+                    <select
+                      className="px-2 py-1 border rounded-md text-sm"
+                      value={ticket?.priority || "MEDIUM"}
+                      onChange={async (e) => {
+                        if (!ticket) return;
+                        setSaving(true);
+                        try {
+                          const resp = await api.patch(
+                            `/api/tickets/${ticket.id}`,
+                            { priority: e.target.value },
+                          );
+                          setTicket((prev: any) => ({
+                            ...(prev || {}),
+                            ...(resp.data?.data || {}),
+                          }));
+                        } finally {
+                          setSaving(false);
+                        }
+                      }}
+                    >
+                      <option value="LOW">Baja</option>
+                      <option value="MEDIUM">Media</option>
+                      <option value="HIGH">Alta</option>
+                      <option value="URGENT">Urgente</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
@@ -346,35 +454,41 @@ const TicketDetailPage: React.FC = () => {
                 </label>
                 <div className="flex items-center space-x-2">
                   <User size={14} />
-                  <select
-                    className="px-2 py-1 border rounded-md text-sm"
-                    value={ticket?.assignee?.id || ""}
-                    onChange={async (e) => {
-                      if (!ticket) return;
-                      setSaving(true);
-                      try {
-                        const resp = await api.patch(
-                          `/api/tickets/${ticket.id}`,
-                          {
-                            assigneeId: e.target.value || null,
-                          },
-                        );
-                        setTicket((prev: any) => ({
-                          ...(prev || {}),
-                          ...(resp.data?.data || {}),
-                        }));
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  >
-                    <option value="">Sin asignar</option>
-                    {agents.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} ({a.email})
-                      </option>
-                    ))}
-                  </select>
+                  {user?.role === "ADMIN" ? (
+                    <select
+                      className="px-2 py-1 border rounded-md text-sm"
+                      value={ticket?.assignee?.id || ""}
+                      onChange={async (e) => {
+                        if (!ticket) return;
+                        setSaving(true);
+                        try {
+                          const resp = await api.patch(
+                            `/api/tickets/${ticket.id}`,
+                            {
+                              assigneeId: e.target.value || null,
+                            },
+                          );
+                          setTicket((prev: any) => ({
+                            ...(prev || {}),
+                            ...(resp.data?.data || {}),
+                          }));
+                        } finally {
+                          setSaving(false);
+                        }
+                      }}
+                    >
+                      <option value="">Sin asignar</option>
+                      {agents.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.email})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-sm px-2 py-1 bg-muted rounded-md">
+                      {ticket?.assignee?.name || "Sin asignar"}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -402,107 +516,109 @@ const TicketDetailPage: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pt-4 pb-2">
-              {/* Uploader */}
-              <div className="flex items-center space-x-2 mb-3">
-                <input
-                  type="file"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    setSelectedFile(file);
-                  }}
-                />
-                {selectedFile && (
-                  <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                    {selectedFile.name}
-                  </span>
-                )}
-                <Button
-                  className="px-2 py-1 text-sm"
-                  variant="outline"
-                  size="sm"
-                  disabled={!selectedFile || uploading || !ticket}
-                  onClick={async () => {
-                    if (!selectedFile || !ticket) return;
-                    const form = new FormData();
-                    form.append("file", selectedFile);
-                    try {
-                      setUploading(true);
-                      const resp = await api.post(
-                        `/api/attachments/${ticket.id}`,
-                        form,
-                        {
-                          headers: { "Content-Type": "multipart/form-data" },
-                        },
-                      );
-                      const created = resp.data?.data;
-                      if (created) {
-                        setTicket((prev: any) => {
-                          if (!prev) return prev;
-                          const attachments = prev.attachments
-                            ? [created, ...prev.attachments]
-                            : [created];
-                          return { ...prev, attachments };
-                        });
-                        setSelectedFile(null);
-                      }
-                    } finally {
-                      setUploading(false);
-                    }
-                  }}
-                >
-                  {uploading ? "Subiendo..." : "Subir"}
-                </Button>
-              </div>
+              {/* Zona de upload con drag & drop */}
+              <FileUploadZone
+                ticketId={id!}
+                maxFiles={20}
+                maxSize={10 * 1024 * 1024} // 10MB
+                onSuccess={(newAttachments) => {
+                  setTicket((prev: any) => {
+                    if (!prev) return prev;
+                    const attachments = prev.attachments
+                      ? [...newAttachments, ...prev.attachments]
+                      : newAttachments;
+                    return { ...prev, attachments };
+                  });
+                }}
+                onError={(error) => {
+                  console.error("Error uploading files:", error);
+                }}
+                className="mb-4"
+              />
 
+              {/* Lista de archivos existentes */}
               {ticket?.attachments && ticket.attachments.length > 0 ? (
-                <div className="space-y-2">
-                  {ticket.attachments.map((a: any) => (
-                    <div
-                      key={a.id}
-                      className="flex items-center justify-between border rounded p-2"
-                    >
-                      <a
-                        href={`${API_URL}${a.storageUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm underline"
-                      >
-                        {a.fileName} ({Math.round((a.sizeBytes || 0) / 1024)}{" "}
-                        KB)
-                      </a>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          await api.delete(`/api/attachments/${a.id}`);
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    Archivos adjuntos ({ticket.attachments.length})
+                  </h4>
+                  {ticket.attachments.map((attachment: any) => (
+                    <AdvancedFilePreview
+                      key={attachment.id}
+                      attachment={attachment}
+                      onDelete={async (attachmentId) => {
+                        try {
+                          await api.delete(`/api/attachments/${attachmentId}`);
                           setTicket((prev: any) => {
                             if (!prev) return prev;
                             const attachments = (prev.attachments || []).filter(
-                              (x: any) => x.id !== a.id,
+                              (a: any) => a.id !== attachmentId,
                             );
                             return { ...prev, attachments };
                           });
-                        }}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
+                          toast.success("Archivo eliminado correctamente");
+                        } catch (error: any) {
+                          const message =
+                            error.response?.data?.error?.message ||
+                            "Error al eliminar archivo";
+                          toast.error(message);
+                        }
+                      }}
+                    />
                   ))}
                 </div>
               ) : (
-                <Card className="px-2">
-                  <EmptyState
-                    icon={<Paperclip size={32} />}
-                    title="Sin archivos"
-                    description="No se han adjuntado archivos a este ticket."
-                    action={null}
-                  />
-                </Card>
+                <EmptyState
+                  icon={<Paperclip size={32} />}
+                  title="Sin archivos"
+                  description="No se han adjuntado archivos a este ticket."
+                  action={null}
+                />
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Modal para cerrar ticket */}
+      {showCloseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              Cerrar Ticket
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Para cerrar este ticket, debes proporcionar un comentario
+              explicando por qué se considera resuelto.
+            </p>
+
+            <textarea
+              value={closeComment}
+              onChange={(e) => setCloseComment(e.target.value)}
+              placeholder="Describe por qué este ticket se considera resuelto..."
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md mb-4 min-h-[100px] resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            />
+
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => setShowCloseModal(false)}
+                variant="outline"
+                className="flex-1"
+                disabled={saving}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCloseTicket}
+                className="flex-1"
+                disabled={!closeComment.trim() || saving}
+              >
+                {saving ? "Cerrando..." : "Cerrar Ticket"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -10,10 +10,13 @@ import {
 import { Button } from "@forzani/ui";
 import { Plus, Search, Filter } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useTickets } from "../hooks";
+import { useTickets, useAuth } from "../hooks";
+import toast from "react-hot-toast";
+import api from "../lib/api";
 
 const TicketsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     tickets,
     isLoading,
@@ -28,6 +31,40 @@ const TicketsPage: React.FC = () => {
   } = useTickets();
 
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Función para reabrir un ticket
+  const handleReopenTicket = async (ticketId: string) => {
+    try {
+      const comment = prompt(
+        "Por favor, proporciona un comentario explicando por qué reabres este ticket:",
+      );
+      if (!comment || comment.trim() === "") {
+        toast.error("Debes proporcionar un comentario para reabrir el ticket");
+        return;
+      }
+
+      // Llamar a la API para reabrir el ticket
+      const response = await api.post(`/api/tickets/${ticketId}/reopen`, {
+        comment: comment.trim(),
+      });
+
+      if (response.data.success) {
+        toast.success("Ticket reabierto correctamente");
+
+        // Recargar los tickets para reflejar el cambio
+        await fetchTickets({ filters, page, pageSize });
+      } else {
+        throw new Error(
+          response.data.error?.message || "Error al reabrir el ticket",
+        );
+      }
+    } catch (error) {
+      console.error("Error reopening ticket:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error al reabrir el ticket",
+      );
+    }
+  };
 
   // Cargar tickets al montar y refetch con debounce cuando cambian filtros
   React.useEffect(() => {
@@ -57,20 +94,17 @@ const TicketsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Extraer valores de filtros para evitar expresiones complejas en useEffect
+  const sortBy = (filters as any).sortBy;
+  const sortDir = (filters as any).sortDir;
+
   React.useEffect(() => {
     const handle = setTimeout(() => {
       fetchTickets({ filters, page: 1, pageSize });
       setPage(1);
     }, 250);
     return () => clearTimeout(handle);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    filters.q,
-    filters.status,
-    filters.priority,
-    (filters as any).sortBy,
-    (filters as any).sortDir,
-  ]);
+  }, [filters, fetchTickets, pageSize, setPage]);
 
   // Sincronizar URL con estado
   React.useEffect(() => {
@@ -78,14 +112,12 @@ const TicketsPage: React.FC = () => {
     if (filters.q) sp.set("q", String(filters.q));
     if (filters.status) sp.set("status", String(filters.status));
     if (filters.priority) sp.set("priority", String(filters.priority));
-    if ((filters as any).sortBy)
-      sp.set("sortBy", String((filters as any).sortBy));
-    if ((filters as any).sortDir)
-      sp.set("sortDir", String((filters as any).sortDir));
+    if (sortBy) sp.set("sortBy", String(sortBy));
+    if (sortDir) sp.set("sortDir", String(sortDir));
     sp.set("page", String(page));
     sp.set("pageSize", String(pageSize));
     setSearchParams(sp, { replace: true });
-  }, [filters, page, pageSize, setSearchParams]);
+  }, [filters, page, pageSize, setSearchParams, sortBy, sortDir]);
 
   // No early return on loading to preserve input focus
 
@@ -181,12 +213,7 @@ const TicketsPage: React.FC = () => {
               <option value="desc">Desc</option>
               <option value="asc">Asc</option>
             </select>
-            <Button
-              onClick={() => fetchTickets({ filters })}
-              className="px-4 py-2"
-            >
-              Aplicar Filtros
-            </Button>
+
             <Button
               variant="outline"
               onClick={() => {
@@ -237,73 +264,157 @@ const TicketsPage: React.FC = () => {
               }
             />
           ) : (
-            <div className="space-y-3">
-              {tickets.map((ticket) => (
-                <div
-                  key={ticket.id}
-                  className="border rounded-lg p-3 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-lg">
-                          {ticket.title}
-                        </h3>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            ticket.priority === "URGENT"
-                              ? "bg-red-500 text-white"
-                              : ticket.priority === "HIGH"
-                                ? "bg-orange-500 text-white"
-                                : ticket.priority === "MEDIUM"
-                                  ? "bg-yellow-500 text-white"
-                                  : "bg-green-500 text-white"
-                          }`}
-                        >
-                          {ticket.priority}
-                        </span>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            ticket.status === "OPEN"
-                              ? "bg-blue-500 text-white"
-                              : ticket.status === "IN_PROGRESS"
-                                ? "bg-purple-500 text-white"
-                                : ticket.status === "RESOLVED"
-                                  ? "bg-green-500 text-white"
-                                  : "bg-gray-500 text-white"
-                          }`}
-                        >
-                          {ticket.status}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground mb-3">
-                        {ticket.description}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>
-                          Solicitante: {ticket.requester?.name || "N/A"}
-                        </span>
-                        {ticket.assignee && (
-                          <span>Asignado a: {ticket.assignee.name}</span>
-                        )}
-                        <span>
-                          Creado:{" "}
-                          {new Date(ticket.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/tickets/${ticket.id}`)}
+            <div className="space-y-6">
+              {/* Tickets Abiertos */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-blue-600 border-b border-blue-200 pb-2">
+                  Tickets Abiertos (
+                  {tickets.filter((t) => t.status !== "CLOSED").length})
+                </h3>
+                <div className="space-y-3">
+                  {tickets
+                    .filter((ticket) => ticket.status !== "CLOSED")
+                    .map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="border rounded-lg p-3 hover:shadow-md transition-shadow bg-white"
                       >
-                        Ver Detalle
-                      </Button>
-                    </div>
-                  </div>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="font-semibold text-lg">
+                                #
+                                {ticket.ticketNumber
+                                  ?.toString()
+                                  .padStart(5, "0")}{" "}
+                                - {ticket.title}
+                              </h3>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  ticket.priority === "URGENT"
+                                    ? "bg-red-500 text-white"
+                                    : ticket.priority === "HIGH"
+                                      ? "bg-orange-500 text-white"
+                                      : ticket.priority === "MEDIUM"
+                                        ? "bg-yellow-500 text-white"
+                                        : "bg-green-500 text-white"
+                                }`}
+                              >
+                                {ticket.priority}
+                              </span>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  ticket.status === "OPEN"
+                                    ? "bg-blue-500 text-white"
+                                    : ticket.status === "IN_PROGRESS"
+                                      ? "bg-purple-500 text-white"
+                                      : ticket.status === "RESOLVED"
+                                        ? "bg-green-500 text-white"
+                                        : "bg-gray-500 text-white"
+                                }`}
+                              >
+                                {ticket.status}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground mb-3">
+                              {ticket.description}
+                            </p>
+                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                              <span>
+                                Solicitante: {ticket.requester?.name || "N/A"}
+                              </span>
+                              {ticket.assignee && (
+                                <span>Asignado a: {ticket.assignee.name}</span>
+                              )}
+                              <span>
+                                Creado:{" "}
+                                {new Date(
+                                  ticket.createdAt,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/tickets/${ticket.id}`)}
+                            >
+                              Ver Detalle
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Tickets Cerrados */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-gray-600 border-b border-gray-200 pb-2">
+                  Tickets Cerrados (
+                  {tickets.filter((t) => t.status === "CLOSED").length})
+                </h3>
+                <div className="space-y-2">
+                  {tickets
+                    .filter((ticket) => ticket.status === "CLOSED")
+                    .map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="border rounded-lg p-3 hover:shadow-sm transition-shadow bg-gray-50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h4 className="font-medium text-base">
+                                #
+                                {ticket.ticketNumber
+                                  ?.toString()
+                                  .padStart(5, "0")}{" "}
+                                - {ticket.title}
+                              </h4>
+                              <span className="px-2 py-1 text-xs rounded-full bg-gray-500 text-white">
+                                {ticket.status}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                              <span>
+                                Solicitante: {ticket.requester?.name || "N/A"}
+                              </span>
+                              <span>
+                                Cerrado:{" "}
+                                {new Date(
+                                  ticket.updatedAt,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/tickets/${ticket.id}`)}
+                            >
+                              Ver Detalle
+                            </Button>
+                            {/* Solo mostrar botón Reabrir para AGENT y ADMIN */}
+                            {(user?.role === "AGENT" ||
+                              user?.role === "ADMIN") && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleReopenTicket(ticket.id)}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Reabrir
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
           )}
 

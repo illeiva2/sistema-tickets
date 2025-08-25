@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 interface Ticket {
   id: string;
+  ticketNumber: number;
   title: string;
   description: string;
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
