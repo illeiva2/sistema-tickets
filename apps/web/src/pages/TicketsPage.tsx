@@ -10,12 +10,13 @@ import {
 import { Button } from "@forzani/ui";
 import { Plus, Search, Filter } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useTickets } from "../hooks";
+import { useTickets, useAuth } from "../hooks";
 import toast from "react-hot-toast";
 import api from "../lib/api";
 
 const TicketsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     tickets,
     isLoading,
@@ -401,14 +402,18 @@ const TicketsPage: React.FC = () => {
                             >
                               Ver Detalle
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleReopenTicket(ticket.id)}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              Reabrir
-                            </Button>
+                            {/* Solo mostrar botón Reabrir para AGENT y ADMIN */}
+                            {(user?.role === "AGENT" ||
+                              user?.role === "ADMIN") && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleReopenTicket(ticket.id)}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Reabrir
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
