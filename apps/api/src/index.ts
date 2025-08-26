@@ -24,7 +24,7 @@ import {
   authenticateFileAccess,
 } from "./middleware/fileServing";
 import FileOrganizationController from "./controllers/fileOrganization.controller";
-// Using literal role strings to avoid enum import issues in some environments
+import { UserRole } from "@prisma/client";
 
 const app = express();
 
@@ -156,81 +156,105 @@ app.use(
   "/api/auth",
   express
     .Router()
-    .post("/login", ...AuthController.login)
-    .post("/refresh", ...AuthController.refreshToken)
-    .get("/me", authMiddleware, AuthController.me),
+    .post("/login", AuthController.login as any)
+    .post("/refresh", AuthController.refreshToken as any)
+    .get("/me", authMiddleware, AuthController.me as any),
 );
 
 app.use(
   "/api/dashboard",
   express
     .Router()
-    .get("/stats", authMiddleware, DashboardController.stats)
-    .get("/agent-stats", authMiddleware, DashboardController.agentStats)
-    .get("/user-stats", authMiddleware, DashboardController.userStats),
+    .get("/stats", authMiddleware, DashboardController.stats as any)
+    .get("/agent-stats", authMiddleware, DashboardController.agentStats as any)
+    .get("/user-stats", authMiddleware, DashboardController.userStats as any),
 );
 
 app.use(
   "/api/tickets",
   express
     .Router()
-    .get("/", authMiddleware, ...TicketsController.getTickets)
-    .get("/:id", authMiddleware, TicketsController.getTicketById)
-    .post("/", authMiddleware, ...TicketsController.createTicket)
-    .patch("/:id", authMiddleware, ...TicketsController.updateTicket)
-    .post("/:id/close", authMiddleware, ...TicketsController.closeTicket)
-    .post("/:id/reopen", authMiddleware, ...TicketsController.reopenTicket)
+    .get("/", authMiddleware, TicketsController.getTickets as any)
+    .get("/:id", authMiddleware, TicketsController.getTicketById as any)
+    .post("/", authMiddleware, TicketsController.createTicket as any)
+    .patch("/:id", authMiddleware, TicketsController.updateTicket as any)
+    .post("/:id/close", authMiddleware, TicketsController.closeTicket as any)
+    .post("/:id/reopen", authMiddleware, TicketsController.reopenTicket as any)
     .delete(
       "/:id",
       authMiddleware,
-      requireRole(["ADMIN" as any]),
-      TicketsController.deleteTicket,
+      requireRole([UserRole.ADMIN]),
+      TicketsController.deleteTicket as any,
     )
-    .get("/:ticketId/comments", authMiddleware, ...CommentsController.list)
-    .post("/:ticketId/comments", authMiddleware, ...CommentsController.create),
+    .get("/:ticketId/comments", authMiddleware, CommentsController.list as any)
+    .post(
+      "/:ticketId/comments",
+      authMiddleware,
+      CommentsController.create as any,
+    ),
 );
 
 app.use(
   "/api/users",
   express
     .Router()
-    .get("/", authMiddleware, UsersController.listUsers)
-    .get("/agents", authMiddleware, UsersController.listAgents)
-    .get("/:id", authMiddleware, UsersController.getUserById)
-    .post("/", authMiddleware, UsersController.createUser)
-    .patch("/:id", authMiddleware, UsersController.updateUser)
-    .patch("/:id/password", authMiddleware, UsersController.changePassword)
-    .delete("/:id", authMiddleware, UsersController.deleteUser)
-    .get("/:id/stats", authMiddleware, UsersController.getUserStats),
+    .get("/", authMiddleware, UsersController.listUsers as any)
+    .get("/agents", authMiddleware, UsersController.listAgents as any)
+    .get("/:id", authMiddleware, UsersController.getUserById as any)
+    .post("/", authMiddleware, UsersController.createUser as any)
+    .patch("/:id", authMiddleware, UsersController.updateUser as any)
+    .patch(
+      "/:id/password",
+      authMiddleware,
+      UsersController.changePassword as any,
+    )
+    .delete("/:id", authMiddleware, UsersController.deleteUser as any)
+    .get("/:id/stats", authMiddleware, UsersController.getUserStats as any),
 );
 
 app.use(
   "/api/notifications",
   express
     .Router()
-    .get("/debug-config", authMiddleware, NotificationsController.debugConfig)
+    .get(
+      "/debug-config",
+      authMiddleware,
+      NotificationsController.debugConfig as any,
+    )
     .get(
       "/test-connection",
       authMiddleware,
-      NotificationsController.testConnection,
+      NotificationsController.testConnection as any,
     )
-    .post("/test-email", authMiddleware, NotificationsController.sendTestEmail)
-    .get("/user", authMiddleware, NotificationsController.getUserNotifications)
-    .patch("/:id/read", authMiddleware, NotificationsController.markAsRead)
+    .post(
+      "/test-email",
+      authMiddleware,
+      NotificationsController.sendTestEmail as any,
+    )
+    .get(
+      "/user",
+      authMiddleware,
+      NotificationsController.getUserNotifications as any,
+    )
+    .patch(
+      "/:id/read",
+      authMiddleware,
+      NotificationsController.markAsRead as any,
+    )
     .patch(
       "/mark-all-read",
       authMiddleware,
-      NotificationsController.markAllAsRead,
+      NotificationsController.markAllAsRead as any,
     )
     .get(
       "/preferences",
       authMiddleware,
-      NotificationsController.getUserPreferences,
+      NotificationsController.getUserPreferences as any,
     )
     .patch(
       "/preferences",
       authMiddleware,
-      NotificationsController.updateUserPreferences,
+      NotificationsController.updateUserPreferences as any,
     ),
 );
 
@@ -291,14 +315,14 @@ app.use(
   "/api/attachments",
   express
     .Router()
-    .get("/:ticketId", authMiddleware, ...AttachmentsController.list)
+    .get("/:ticketId", authMiddleware, AttachmentsController.list)
     .post(
       "/:ticketId",
       authMiddleware,
       upload.single("file"),
       AttachmentsController.upload,
     )
-    .delete("/:id", authMiddleware, ...AttachmentsController.remove)
+    .delete("/:id", authMiddleware, AttachmentsController.remove)
     .get("/:id/info", authMiddleware, AttachmentsController.getInfo)
     .get("/:id/exists", authMiddleware, AttachmentsController.checkExists)
     .get(

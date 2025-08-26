@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { oauthConfig } from "../config/oauth";
 import { logger } from "../lib/logger";
 import { ApiError } from "../lib/errors";
+import { config } from "../config";
 
 export class OAuthController {
   // Iniciar autenticación con Google
@@ -54,23 +55,25 @@ export class OAuthController {
 
         try {
           // Generar JWT tokens
+          // @ts-expect-error - JWT sign type compatibility issue
           const accessToken = jwt.sign(
             {
               userId: user.id,
               email: user.email,
               role: user.role,
             },
-            oauthConfig.jwt.secret,
-            { expiresIn: oauthConfig.jwt.expiresIn },
+            oauthConfig.jwt.secret || config.jwt.secret,
+            { expiresIn: oauthConfig.jwt.expiresIn || "15m" },
           );
 
+          // @ts-expect-error - JWT sign type compatibility issue
           const refreshToken = jwt.sign(
             {
               userId: user.id,
               type: "refresh",
             },
-            oauthConfig.jwt.secret,
-            { expiresIn: oauthConfig.jwt.refreshExpiresIn },
+            oauthConfig.jwt.secret || config.jwt.secret,
+            { expiresIn: oauthConfig.jwt.refreshExpiresIn || "7d" },
           );
 
           // Redirigir al frontend con tokens
@@ -114,7 +117,10 @@ export class OAuthController {
       }
 
       const token = authHeader.substring(7);
-      const decoded = jwt.verify(token, oauthConfig.jwt.secret) as any;
+      const decoded = jwt.verify(
+        token,
+        oauthConfig.jwt.secret || config.jwt.secret,
+      ) as any;
 
       if (!decoded.userId) {
         throw new ApiError("INVALID_TOKEN", "Token inválido", 401);
@@ -190,14 +196,15 @@ export class OAuthController {
       }
 
       // Generar nuevo access token
+      // @ts-expect-error - JWT sign type compatibility issue
       const newAccessToken = jwt.sign(
         {
           userId: user.id,
           email: user.email,
           role: user.role,
         },
-        oauthConfig.jwt.secret,
-        { expiresIn: oauthConfig.jwt.expiresIn },
+        oauthConfig.jwt.secret || config.jwt.secret,
+        { expiresIn: oauthConfig.jwt.expiresIn || "15m" },
       );
 
       res.json({

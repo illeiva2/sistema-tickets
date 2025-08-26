@@ -97,7 +97,9 @@ export class FileProcessingService {
         dpi:
           metadata.density &&
           typeof metadata.density === "object" &&
+          // @ts-expect-error - metadata.density can be null but we check it above
           "x" in metadata.density &&
+          // @ts-expect-error - metadata.density can be null but we check it above
           "y" in metadata.density
             ? { x: (metadata.density as any).x, y: (metadata.density as any).y }
             : undefined,

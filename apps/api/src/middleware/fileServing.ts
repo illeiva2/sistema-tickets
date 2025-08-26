@@ -4,12 +4,13 @@ import fs from "fs/promises";
 import { prisma } from "../lib/database";
 import { ApiError } from "../lib/errors";
 import jwt from "jsonwebtoken";
+import { UserRole } from "@prisma/client";
 
 export interface AuthenticatedFileRequest extends Request {
   user?: {
     id: string;
     email: string;
-    role: string;
+    role: UserRole;
   };
 }
 

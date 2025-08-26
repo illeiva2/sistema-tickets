@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@forzani/ui": path.resolve(__dirname, "../../packages/ui/src"),
+      "@forzani/types": path.resolve(__dirname, "../../packages/types/src"),
     },
   },
   server: {
@@ -16,5 +18,8 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
+  },
+  optimizeDeps: {
+    include: ["@forzani/ui", "@forzani/types"],
   },
 });

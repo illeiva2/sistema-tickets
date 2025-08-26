@@ -6,7 +6,7 @@ export const config = {
   database: {
     url:
       process.env.DATABASE_URL ||
-      "postgresql://postgres:postgres@localhost:5432/tickets",
+      "postgresql://postgres:postgres@localhost:5432/empresa_tickets",
   },
   jwt: {
     secret: process.env.JWT_SECRET || "changeme-in-production",
