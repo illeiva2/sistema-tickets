@@ -16,6 +16,8 @@ import AttachmentsController from "./controllers/attachments.controller";
 import DashboardController from "./controllers/dashboard.controller";
 import { NotificationsController } from "./controllers/notifications.controller";
 import { authMiddleware, requireRole } from "./middleware/auth";
+import passport from "./config/passport";
+import { OAuthController } from "./controllers/oauth.controller";
 import {
   secureFileServing,
   fileExists,
@@ -76,6 +78,36 @@ if (config.server.nodeEnv === "production") {
 // Request parsing
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Passport middleware
+app.use(passport.initialize());
+
+// Validate OAuth configuration
+import("./config/oauth")
+  .then(({ validateOAuthConfig, oauthConfig }) => {
+    try {
+      validateOAuthConfig();
+      logger.info("✅ OAuth configuration validated successfully");
+      logger.info("🔍 OAuth Debug Info:");
+      logger.info(
+        "  - Client ID:",
+        oauthConfig.google.clientID ? "✅ Presente" : "❌ FALTANTE",
+      );
+      logger.info(
+        "  - Client Secret:",
+        oauthConfig.google.clientSecret ? "✅ Presente" : "❌ FALTANTE",
+      );
+      logger.info("  - Callback URL:", oauthConfig.google.callbackURL);
+      logger.info("  - Scope:", oauthConfig.google.scope);
+    } catch (error) {
+      logger.error("❌ OAuth configuration validation failed:", error);
+      logger.warn("OAuth features will not work properly");
+    }
+  })
+  .catch((error) => {
+    logger.error("❌ Failed to load OAuth configuration:", error);
+    logger.warn("OAuth features will not work properly");
+  });
 // Static uploads
 app.use(
   "/uploads",
@@ -243,6 +275,12 @@ app.use("/api/file-organization", authMiddleware, (req, res, next) => {
 
   router(req, res, next);
 });
+
+// OAuth routes
+app.get("/api/auth/google", OAuthController.initiateGoogleAuth);
+app.get("/api/auth/google/callback", OAuthController.googleCallback);
+app.post("/api/auth/refresh", OAuthController.refreshToken);
+app.post("/api/auth/logout", OAuthController.logout);
 
 // Attachments routes
 const upload = multer({

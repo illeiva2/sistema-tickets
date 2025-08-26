@@ -15,13 +15,27 @@ export class AuthService {
       throw new ApiError("INVALID_CREDENTIALS", "Credenciales inválidas", 401);
     }
 
+    // Verificar si es un usuario de Google OAuth que aún no configuró contraseña
+    if (user.googleId && (user as any).mustChangePassword) {
+      throw new ApiError(
+        "GOOGLE_OAUTH_USER",
+        "Este usuario se registró con Google. Por favor, inicia sesión con Google o configura tu contraseña personal primero.",
+        401,
+      );
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
       throw new ApiError("INVALID_CREDENTIALS", "Credenciales inválidas", 401);
     }
 
     const accessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        mustChangePassword: (user as any).mustChangePassword ?? false,
+      },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn } as SignOptions,
     );
@@ -42,6 +56,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        mustChangePassword: (user as any).mustChangePassword ?? false,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

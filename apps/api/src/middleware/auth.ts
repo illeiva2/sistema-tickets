@@ -10,6 +10,7 @@ export interface AuthenticatedRequest extends Request {
     id: string;
     email: string;
     role: UserRole;
+    mustChangePassword?: boolean;
   };
 }
 
@@ -27,13 +28,19 @@ export const authMiddleware = (
 
     const token = authHeader.substring(7);
 
-    const decoded = jwt.verify(token, config.jwt.secret) as {
-      id: string;
-      email: string;
-      role: UserRole;
-    };
+    const decoded = jwt.verify(token, config.jwt.secret) as any;
 
-    req.user = decoded;
+    const userId = decoded?.id || decoded?.userId;
+    if (!userId || !decoded?.email || !decoded?.role) {
+      throw new ApiError("UNAUTHORIZED", "Token inválido", 401);
+    }
+
+    req.user = {
+      id: userId,
+      email: decoded.email,
+      role: decoded.role,
+      mustChangePassword: decoded.mustChangePassword ?? false,
+    };
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

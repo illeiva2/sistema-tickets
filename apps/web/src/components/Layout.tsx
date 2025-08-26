@@ -1,5 +1,11 @@
 import React from "react";
-import { Outlet, Link, useLocation, useParams } from "react-router-dom";
+import {
+  Outlet,
+  Link,
+  useLocation,
+  useParams,
+  useNavigate,
+} from "react-router-dom";
 import { Button } from "@forzani/ui";
 import {
   LogOut,
@@ -10,6 +16,9 @@ import {
   Mail,
   Folder,
   Users,
+  User,
+  ChevronDown,
+  Settings,
 } from "lucide-react";
 import { useAuth, useTickets } from "../hooks";
 import { useNotificationsContext } from "../contexts/NotificationsContext";
@@ -122,6 +131,8 @@ const Breadcrumbs = () => {
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const { unreadCount } = useNotificationsContext();
+  const navigate = useNavigate();
+  const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
 
   // Solo cargar notificaciones si el usuario está autenticado
   React.useEffect(() => {
@@ -139,6 +150,27 @@ const Layout: React.FC = () => {
   const handleLogout = () => {
     logout();
   };
+
+  const handleChangePassword = () => {
+    setIsUserMenuOpen(false);
+    navigate("/change-password");
+  };
+
+  // Cerrar menú cuando se hace clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest(".user-menu")) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
 
   // Dark mode toggle (simple)
   const [dark, setDark] = React.useState<boolean>(
@@ -191,14 +223,64 @@ const Layout: React.FC = () => {
             </nav>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-sm font-medium dark:text-black text-gray-5000 text-foreground">
-                {user?.name || "Usuario"}
-              </p>
-              <p className="text-xs dark:text-black text-black text-muted-foreground capitalize">
-                {user?.role || "USER"}
-              </p>
+            {/* User Dropdown Menu */}
+            <div className="relative user-menu">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2 px-3 py-2"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
+                <User size={16} />
+                <span className="hidden sm:inline">
+                  {user?.name || "Usuario"}
+                </span>
+                <ChevronDown size={14} className="ml-1" />
+              </Button>
+
+              {/* Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                  <div className="py-2">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user?.name || "Usuario"}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                        {user?.role || "USER"}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {user?.email}
+                      </p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      <button
+                        onClick={handleChangePassword}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <Settings size={16} className="mr-3" />
+                        Cambiar Contraseña
+                      </button>
+                    </div>
+
+                    {/* Logout */}
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <LogOut size={16} className="mr-3" />
+                        Cerrar Sesión
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
             <Button
               variant="outline"
               size="sm"
@@ -206,15 +288,6 @@ const Layout: React.FC = () => {
               onClick={() => setDark(!dark)}
             >
               {dark ? "Light" : "Dark"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="px-2 py-1 text-sm"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} className="mr-2" />
-              Cerrar Sesión
             </Button>
           </div>
         </div>

@@ -15,6 +15,7 @@ export {
 export { Input } from "./components/input";
 export { Select, SelectOption } from "./components/select";
 export { DataTable } from "./components/data-table";
+export { Slider } from "./components/slider";
 
 // Skeleton components
 export {

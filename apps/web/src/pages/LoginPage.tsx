@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +11,8 @@ import {
   CardContent,
 } from "@forzani/ui";
 import { useAuth } from "../hooks";
+import { Chrome, Trash2, AlertCircle, Info } from "lucide-react";
+import { clearAuthData } from "../utils/clearAuth";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -20,7 +22,9 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   const {
     register,
     handleSubmit,
@@ -31,10 +35,25 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginForm) => {
     try {
+      setError(null);
+      setIsGoogleUser(false);
       await login(data);
-    } catch (error) {
-      // El error ya se maneja en el hook
+    } catch (error: any) {
+      const errorCode = error?.response?.data?.error?.code;
+      const errorMessage = error?.response?.data?.error?.message;
+
+      if (errorCode === "GOOGLE_OAUTH_USER") {
+        setIsGoogleUser(true);
+        setError(errorMessage);
+      } else {
+        setError(errorMessage || "Error al iniciar sesión");
+      }
     }
+  };
+
+  const handleClearAuth = () => {
+    clearAuthData();
+    window.location.reload();
   };
 
   return (
@@ -71,10 +90,91 @@ const LoginPage: React.FC = () => {
                 </p>
               )}
             </div>
+
+            {/* Error message */}
+            {error && (
+              <div
+                className={`p-3 rounded-md text-sm ${
+                  isGoogleUser
+                    ? "bg-blue-50 border border-blue-200 text-blue-800"
+                    : "bg-red-50 border border-red-200 text-red-800"
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {isGoogleUser ? (
+                    <Info className="h-4 w-4 mt-0.5 text-blue-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 mt-0.5 text-red-600" />
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {isGoogleUser
+                        ? "Usuario de Google detectado"
+                        : "Error de autenticación"}
+                    </p>
+                    <p className="mt-1">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Google OAuth user suggestion */}
+            {isGoogleUser && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <Chrome className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    Solución recomendada:
+                  </span>
+                </div>
+                <p className="text-sm text-blue-700 mt-1">
+                  Usa &quot;Continuar con Google&quot; para acceder a tu cuenta,
+                  o configura una contraseña personal después del primer login.
+                </p>
+              </div>
+            )}
+
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">
+                  O continuar con
+                </span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={loginWithGoogle}
+              className="w-full mt-4"
+            >
+              <Chrome className="mr-2 h-4 w-4" />
+              Continuar con Google
+            </Button>
+
+            {/* Debug button - solo en desarrollo */}
+            {process.env.NODE_ENV === "development" && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAuth}
+                className="w-full mt-2 text-xs text-gray-500 hover:text-red-600"
+              >
+                <Trash2 className="mr-2 h-3 w-3" />
+                Limpiar datos de autenticación (Debug)
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

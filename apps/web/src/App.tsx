@@ -9,6 +9,9 @@ import NewTicketPage from "./pages/NewTicketPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import FileManagementPage from "./pages/FileManagementPage";
 import UsersPage from "./pages/UsersPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import SetupPasswordPage from "./pages/SetupPasswordPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -20,6 +23,7 @@ function App() {
       <div className="min-h-screen bg-background">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
           <Route
             path="/"
             element={
@@ -37,6 +41,8 @@ function App() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="files" element={<FileManagementPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="setup-password" element={<SetupPasswordPage />} />
+            <Route path="change-password" element={<ChangePasswordPage />} />
           </Route>
         </Routes>
         <Toaster position="top-right" />
