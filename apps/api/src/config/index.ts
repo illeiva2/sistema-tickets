@@ -4,9 +4,12 @@ dotenv.config();
 
 export const config = {
   database: {
-    url:
-      process.env.DATABASE_URL ||
-      "postgresql://postgres:postgres@localhost:5432/empresa_tickets",
+    url: process.env.DATABASE_URL || (() => {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("DATABASE_URL is required in production");
+      }
+      return "postgresql://postgres:postgres@localhost:5432/empresa_tickets";
+    })(),
   },
   jwt: {
     secret: process.env.JWT_SECRET || "changeme-in-production",

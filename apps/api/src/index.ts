@@ -30,35 +30,20 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-// CORS CONFIGURATION - FORZAR NUEVO BUILD
+// CORS configuration
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? [
-            "https://sistema-tickets-web.vercel.app",
-            "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
-            "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
-            "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app"
-          ] // CONFIGURACIÓN SIMPLIFICADA
-        : [
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "http://localhost:5175",
-            "http://localhost:3000",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:5174",
-            "http://127.0.0.1:5175",
-            "http://192.168.176.1:5173",
-            "http://192.168.176.1:5174",
-            "http://192.168.176.1:5175",
-            "http://192.168.1.127:5173",
-            "http://192.168.1.127:5174",
-            "http://192.168.1.127:5175",
-            "http://172.19.160.1:5173",
-            "http://172.19.160.1:5174",
-            "http://172.19.160.1:5175",
-          ],
+    origin: config.server.nodeEnv === "production"
+      ? [
+          "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
+          "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
+          "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app",
+          "https://sistema-tickets-e2f2lrx8d-ivans-projects-73af2e4f.vercel.app"
+        ]
+      : [
+          "http://localhost:5173",
+          "http://localhost:3000"
+        ],
     credentials: true,
   }),
 );
@@ -320,7 +305,7 @@ const PORT = config.server.port;
 app.listen(PORT, () => {
   logger.info(`🚀 Server running on port ${PORT}`);
   logger.info(`📊 Environment: ${config.server.nodeEnv}`);
-  logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
+  logger.info(`🔗 Health check: http://localhost:${PORT}/health (local development)`);
 });
 
 // Graceful shutdown

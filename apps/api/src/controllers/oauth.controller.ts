@@ -78,7 +78,9 @@ export class OAuthController {
 
           // Redirigir al frontend con tokens
           const redirectUrl = new URL(
-            process.env.FRONTEND_URL || "http://localhost:5173",
+            process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" 
+              ? "https://sistema-tickets-web.vercel.app"
+              : "http://localhost:5173"),
           );
           redirectUrl.searchParams.set("accessToken", accessToken);
           redirectUrl.searchParams.set("refreshToken", refreshToken);

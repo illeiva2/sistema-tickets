@@ -4,7 +4,9 @@ export const oauthConfig = {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     callbackURL:
       process.env.GOOGLE_CALLBACK_URL ||
-      "http://localhost:3001/api/auth/google/callback",
+      (process.env.NODE_ENV === "production" 
+        ? "https://sistema-tickets-api.vercel.app/api/auth/google/callback"
+        : "http://localhost:3001/api/auth/google/callback"),
     scope: ["profile", "email"],
   },
   jwt: {
