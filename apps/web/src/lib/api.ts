@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = "https://sistema-tickets-14x5e3u2w-ivans-projects-73af2e4f.vercel.app"; // TERCERA NUEVA URL DE LA API
+export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-api.vercel.app"; // URL desde variables de entorno
 
 const api = axios.create({
   baseURL: API_URL,
