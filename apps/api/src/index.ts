@@ -38,7 +38,7 @@ app.use(
   cors({
     origin: config.server.nodeEnv === "production"
       ? [
-          "https://sistema-tickets-9kjvg9a4q-ivans-projects-73af2e4f.vercel.app",
+          "https://sistema-tickets-bp104iuc4-ivans-projects-73af2e4f.vercel.app",
           "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
           "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
           "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app",
