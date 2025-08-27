@@ -37,7 +37,7 @@ app.use(helmet());
 app.use((req, res, next) => {
   const allowedOrigins = config.server.nodeEnv === "production"
     ? [
-        "https://sistema-tickets-bp104iuc4-ivans-projects-73af2e4f.vercel.app",
+        "https://sistema-tickets-5xmsj7ibo-ivans-projects-73af2e4f.vercel.app",
         "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
         "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
         "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app",
