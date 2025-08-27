@@ -18,10 +18,5 @@
         "Access-Control-Max-Age": "86400"
       }
     }
-  ],
-  "functions": {
-    "dist/index.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
