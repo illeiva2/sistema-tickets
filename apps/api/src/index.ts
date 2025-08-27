@@ -33,24 +33,42 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
-// CORS configuration
-app.use(
-  cors({
-    origin: config.server.nodeEnv === "production"
-      ? [
-          "https://sistema-tickets-bp104iuc4-ivans-projects-73af2e4f.vercel.app",
-          "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
-          "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
-          "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app",
-          "https://sistema-tickets-e2f2lrx8d-ivans-projects-73af2e4f.vercel.app"
-        ]
-      : [
-          "http://localhost:5173",
-          "http://localhost:3000"
-        ],
-    credentials: true,
-  }),
-);
+// CORS configuration - Manejo explícito para Vercel
+app.use((req, res, next) => {
+  const allowedOrigins = config.server.nodeEnv === "production"
+    ? [
+        "https://sistema-tickets-bp104iuc4-ivans-projects-73af2e4f.vercel.app",
+        "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
+        "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
+        "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app",
+        "https://sistema-tickets-e2f2lrx8d-ivans-projects-73af2e4f.vercel.app"
+      ]
+    : [
+        "http://localhost:5173",
+        "http://localhost:3000"
+      ];
+
+  const origin = req.headers.origin;
+  
+  // Permitir origen si está en la lista
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  // Headers CORS estándar
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Request-Id');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 horas
+
+  // Manejar preflight OPTIONS
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  next();
+});
 
 // Rate limiting (solo en producción)
 if (config.server.nodeEnv === "production") {
