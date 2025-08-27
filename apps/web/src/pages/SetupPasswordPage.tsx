@@ -9,21 +9,15 @@ import {
   Input,
   Button,
 } from "@forzani/ui";
-import PasswordGenerator from "../components/PasswordGenerator";
+
 import { Shield, Key, ArrowRight, CheckCircle } from "lucide-react";
 
 const SetupPasswordPage: React.FC = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [showGenerator, setShowGenerator] = useState(false);
-
-  const handlePasswordGenerated = (generatedPassword: string) => {
-    setPassword(generatedPassword);
-    setConfirm(generatedPassword);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,16 +155,8 @@ const SetupPasswordPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowGenerator(!showGenerator)}
-                    className="flex-1"
-                  >
-                    {showGenerator ? "Ocultar generador" : "Mostrar generador"}
-                  </Button>
-                  <Button
+                                  <div className="flex gap-3">
+                    <Button
                     type="submit"
                     disabled={
                       loading || !password || !confirm || password !== confirm
@@ -249,12 +235,7 @@ const SetupPasswordPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Generador de contraseñas - ahora fuera del grid principal */}
-        {showGenerator && (
-          <div className="mt-8">
-            <PasswordGenerator onPasswordGenerated={handlePasswordGenerated} />
-          </div>
-        )}
+
       </div>
     </div>
   );

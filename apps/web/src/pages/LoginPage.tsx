@@ -162,7 +162,7 @@ const LoginPage: React.FC = () => {
             </Button>
 
             {/* Debug button - solo en desarrollo */}
-            {process.env.NODE_ENV === "development" && (
+            {import.meta.env.DEV && (
               <Button
                 type="button"
                 variant="ghost"

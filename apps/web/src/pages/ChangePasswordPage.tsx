@@ -4,12 +4,10 @@ import { Button } from "@forzani/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@forzani/ui";
 import { Input } from "@forzani/ui";
 import { CheckCircle, Eye, EyeOff, Lock, Shield } from "lucide-react";
-import PasswordGenerator from "../components/PasswordGenerator";
 import { toast } from "react-hot-toast";
 
 const ChangePasswordPage: React.FC = () => {
   const navigate = useNavigate();
-  const [showGenerator, setShowGenerator] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -23,14 +21,6 @@ const ChangePasswordPage: React.FC = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handlePasswordGenerated = (password: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      newPassword: password,
-      confirmPassword: password,
-    }));
   };
 
   const getPasswordStrength = () => {
@@ -318,18 +308,12 @@ const ChangePasswordPage: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => setShowGenerator(!showGenerator)}
+            onClick={() => navigate("/")}
             className="mx-auto"
           >
-            {showGenerator ? "Ocultar" : "Mostrar"} Generador de Contraseñas
+            Generar Contraseña Segura
           </Button>
         </div>
-
-        {showGenerator && (
-          <div className="mt-8">
-            <PasswordGenerator onPasswordGenerated={handlePasswordGenerated} />
-          </div>
-        )}
       </form>
     </div>
   );

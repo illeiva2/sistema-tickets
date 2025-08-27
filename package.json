@@ -23,13 +23,10 @@
     "stack:down": "cd infra/docker && docker compose down",
     "stack:rebuild": "cd infra/docker && docker compose up -d --build",
     "clean": "turbo run clean",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "prepare": "husky install"
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
     "@turbo/gen": "^1.12.4",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.2.0",
     "prettier": "^3.1.1",
     "turbo": "^1.12.4",
     "typescript": "^5.3.3"
@@ -38,17 +35,5 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
-  },
-  "dependencies": {
-    "docker-compose": "^1.2.0"
   }
 }

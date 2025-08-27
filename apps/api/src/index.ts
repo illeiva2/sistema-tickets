@@ -30,11 +30,17 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
+// CORS CONFIGURATION - FORZAR NUEVO BUILD
 app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
-        ? ["https://yourdomain.com"]
+        ? [
+            "https://sistema-tickets-web.vercel.app",
+            "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
+            "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
+            "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app"
+          ] // CONFIGURACIÓN SIMPLIFICADA
         : [
             "http://localhost:5173",
             "http://localhost:5174",
@@ -262,40 +268,10 @@ app.use(
 app.use("/api/file-organization", authMiddleware, (req, res, next) => {
   const router = express.Router();
 
-  // Categorías
-  router.post("/categories", FileOrganizationController.createCategory);
-  router.get("/categories", FileOrganizationController.getCategories);
-  router.get(
-    "/categories/hierarchy",
-    FileOrganizationController.getCategoriesHierarchy,
-  );
-  router.put(
-    "/categories/:categoryId",
-    FileOrganizationController.updateCategory,
-  );
-  router.delete(
-    "/categories/:categoryId",
-    FileOrganizationController.deleteCategory,
-  );
-
-  // Etiquetas
-  router.post("/tags", FileOrganizationController.createTag);
-  router.get("/tags", FileOrganizationController.getTags);
-  router.put("/tags/:tagId", FileOrganizationController.updateTag);
-  router.delete("/tags/:tagId", FileOrganizationController.deleteTag);
-
-  // Organización
-  router.post(
-    "/files/:attachmentId/organize",
-    FileOrganizationController.organizeFile,
-  );
-  router.get(
-    "/categories/:categoryId/files",
-    FileOrganizationController.getFilesByCategory,
-  );
-  router.get("/tags/:tagName/files", FileOrganizationController.getFilesByTag);
+  // Archivos básicos
+  router.get("/tickets/:ticketId/files", FileOrganizationController.getTicketFiles);
+  router.get("/stats", FileOrganizationController.getFileStats);
   router.get("/search", FileOrganizationController.searchFiles);
-  router.get("/stats", FileOrganizationController.getOrganizationStats);
 
   router(req, res, next);
 });

@@ -1,7 +1,6 @@
 import axios from "axios";
 
-export const API_URL =
-  (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
+export const API_URL = "https://sistema-tickets-14x5e3u2w-ivans-projects-73af2e4f.vercel.app"; // TERCERA NUEVA URL DE LA API
 
 const api = axios.create({
   baseURL: API_URL,
