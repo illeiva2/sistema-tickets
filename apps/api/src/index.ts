@@ -28,6 +28,9 @@ import { UserRole } from "@prisma/client";
 
 const app = express();
 
+// Trust proxy for Vercel (required for rate limiting to work correctly)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 // CORS configuration
