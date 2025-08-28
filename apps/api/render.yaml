@@ -13,7 +13,7 @@ services:
       - key: FRONTEND_URLS
         value: https://sistema-tickets-web.vercel.app,https://sistema-tickets-web-git-main-ivans-projects-73af2e4f.vercel.app
       - key: JWT_SECRET
-        generateValue: true
+        value: pHTuJmXhoBn3UBUCy1OGWaRwWwhPQ2Fe8lf5RinaY5hC90MBiE3XN+niJNkpln0MbPLcJy8DxI9IOLkYkPIWFw==
       - key: JWT_EXPIRES_IN
         value: 15m
       - key: JWT_REFRESH_EXPIRES_IN
