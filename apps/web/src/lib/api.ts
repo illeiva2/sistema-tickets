@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // URL de la API con dominio personalizado
-export const API_URL = import.meta.env.VITE_API_URL || "sistema-tickets-lw3k2ry25-ivans-projects-73af2e4f.vercel.app";
+export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-lw3k2ry25-ivans-projects-73af2e4f.vercel.app";
 
 // Debug: mostrar la URL que se está usando
 console.log("🔍 DEBUG - API_URL:", API_URL);
