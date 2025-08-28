@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// URL de la API que funciona - CORS FIXED
-export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-lw3k2ry25-ivans-projects-73af2e4f.vercel.app";
+// URL de la API con dominio personalizado
+export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-api.vercel.app";
 
 const api = axios.create({
   baseURL: API_URL,
