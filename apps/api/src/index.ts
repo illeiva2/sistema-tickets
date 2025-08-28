@@ -291,27 +291,26 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
-// Start server solo en desarrollo local
-if (config.server.nodeEnv !== "production") {
-  const PORT = config.server.port;
-  
-  app.listen(PORT, () => {
-    logger.info(`🚀 Server running on port ${PORT}`);
-    logger.info(`📊 Environment: ${config.server.nodeEnv}`);
-    logger.info(`🔗 Health check: http://localhost:${PORT}/health (local development)`);
-  });
+// Start server (always in production, conditionally in development)
+const PORT = config.server.port;
 
-  // Graceful shutdown solo en desarrollo
-  process.on("SIGTERM", () => {
-    logger.info("SIGTERM received, shutting down gracefully");
-    process.exit(0);
-  });
+app.listen(PORT, () => {
+  logger.info(`🚀 Server running on port ${PORT}`);
+  logger.info(`📊 Environment: ${config.server.nodeEnv}`);
+  logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
+  logger.info(`🌐 Server accessible at: http://localhost:${PORT}`);
+});
 
-  process.on("SIGINT", () => {
-    logger.info("SIGINT received, shutting down gracefully");
-    process.exit(0);
-  });
-}
+// Graceful shutdown handlers
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received, shutting down gracefully");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  logger.info("SIGINT received, shutting down gracefully");
+  process.exit(0);
+});
 
 // Exportar la app para Vercel
 export { app };
