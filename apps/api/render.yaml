@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: sistema-tickets-api
+    env: node
+    plan: free
+    buildCommand: cd apps/api && npm install && npm run build
+    startCommand: cd apps/api && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URLS
+        value: https://sistema-tickets-web.vercel.app,https://sistema-tickets-web-git-main-ivans-projects-73af2e4f.vercel.app
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: LOG_LEVEL
+        value: info
+
+databases:
+  - name: sistema-tickets-db
+    databaseName: sistema_tickets
+    user: sistema_tickets_user
+    plan: free
