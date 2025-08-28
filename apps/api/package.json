@@ -6,8 +6,8 @@
   "scripts": {
     "prebuild": "prisma generate",
     "dev": "tsx watch src/index.ts",
-    "build": "prisma generate && tsc && npm run build:api",
-    "build:api": "node scripts/build-api.js",
+    "build": "prisma generate && tsc",
+    "build:railway": "node scripts/build-railway.js",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "db:generate": "prisma generate",
