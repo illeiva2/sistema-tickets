@@ -30,13 +30,9 @@ services:
       - key: LOG_LEVEL
         value: info
       - key: DATABASE_URL
-        fromDatabase:
-          name: sistema-tickets-db
-          property: connectionString
+        value: "postgresql://postgres:7uffg9a9MwDFN3aU@db.ebuzyebupwpbfcgyfozl.supabase.co:5432/postgres"
       - key: SHADOW_DATABASE_URL
-        fromDatabase:
-          name: sistema-tickets-db
-          property: connectionString
+        value: "postgresql://postgres:7uffg9a9MwDFN3aU@db.ebuzyebupwpbfcgyfozl.supabase.co:5432/postgres"
       # OAuth variables (optional - set these if you want OAuth functionality)
       - key: GOOGLE_CLIENT_ID
         value: ""
@@ -45,8 +41,5 @@ services:
       - key: GOOGLE_CALLBACK_URL
         value: ""
 
-databases:
-  - name: sistema-tickets-db
-    databaseName: sistema_tickets
-    user: sistema_tickets_user
-    plan: free
+# Database configuration moved to environment variables
+# Using Supabase PostgreSQL database
