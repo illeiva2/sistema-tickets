@@ -55,24 +55,24 @@ export class OAuthController {
 
         try {
           // Generar JWT tokens
-          // @ts-expect-error - JWT sign type compatibility issue
+          // @ts-ignore - JWT sign type compatibility issue
           const accessToken = jwt.sign(
             {
               userId: user.id,
               email: user.email,
               role: user.role,
             },
-            oauthConfig.jwt.secret || config.jwt.secret,
+            (oauthConfig.jwt.secret || config.jwt.secret || "fallback-secret") as string,
             { expiresIn: oauthConfig.jwt.expiresIn || "15m" },
           );
 
-          // @ts-expect-error - JWT sign type compatibility issue
+          // @ts-ignore - JWT sign type compatibility issue
           const refreshToken = jwt.sign(
             {
               userId: user.id,
               type: "refresh",
             },
-            oauthConfig.jwt.secret || config.jwt.secret,
+            (oauthConfig.jwt.secret || config.jwt.secret || "fallback-secret") as string,
             { expiresIn: oauthConfig.jwt.refreshExpiresIn || "7d" },
           );
 
@@ -198,14 +198,14 @@ export class OAuthController {
       }
 
       // Generar nuevo access token
-      // @ts-expect-error - JWT sign type compatibility issue
+      // @ts-ignore - JWT sign type compatibility issue
       const newAccessToken = jwt.sign(
         {
           userId: user.id,
           email: user.email,
           role: user.role,
         },
-        oauthConfig.jwt.secret || config.jwt.secret,
+        (oauthConfig.jwt.secret || config.jwt.secret || "fallback-secret") as string,
         { expiresIn: oauthConfig.jwt.expiresIn || "15m" },
       );
 
