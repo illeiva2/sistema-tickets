@@ -1,11 +1,11 @@
-import express from "express";
-import cors from "cors";
+import express, { Application } from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { config } from "./config";
 import { logger } from "./lib/logger";
 import { errorHandler, notFoundHandler } from "./lib/errors";
 import { requestIdMiddleware } from "./middleware/requestId";
+import { corsMiddleware } from "./middleware/cors";
 import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
 import { CommentsController } from "./controllers/comments.controller";
@@ -26,7 +26,7 @@ import {
 import FileOrganizationController from "./controllers/fileOrganization.controller";
 import { UserRole } from "@prisma/client";
 
-const app = express();
+const app: Application = express();
 
 // Trust proxy for Vercel (required for rate limiting to work correctly)
 app.set('trust proxy', 1);
@@ -34,32 +34,8 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 
-// CORS configuration - Función personalizada para patrones
-app.use(cors({
-  origin: (origin, callback) => {
-    // Permitir requests sin origin (como mobile apps)
-    if (!origin) return callback(null, true);
-    
-    // En producción, permitir cualquier dominio de Vercel del proyecto
-    if (config.server.nodeEnv === "production") {
-      if (origin.includes("vercel.app")) {
-        return callback(null, true);
-      }
-    }
-    
-    // En desarrollo, permitir localhost
-    if (origin.includes("localhost")) {
-      return callback(null, true);
-    }
-    
-    // Denegar otros orígenes
-    callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-Id'],
-  maxAge: 86400
-}));
+// CORS middleware personalizado
+app.use(corsMiddleware);
 
 // Rate limiting (solo en producción)
 if (config.server.nodeEnv === "production") {
@@ -312,22 +288,27 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
-// Start server
-const PORT = config.server.port;
+// Start server solo en desarrollo local
+if (config.server.nodeEnv !== "production") {
+  const PORT = config.server.port;
+  
+  app.listen(PORT, () => {
+    logger.info(`🚀 Server running on port ${PORT}`);
+    logger.info(`📊 Environment: ${config.server.nodeEnv}`);
+    logger.info(`🔗 Health check: http://localhost:${PORT}/health (local development)`);
+  });
 
-app.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT}`);
-  logger.info(`📊 Environment: ${config.server.nodeEnv}`);
-  logger.info(`🔗 Health check: http://localhost:${PORT}/health (local development)`);
-});
+  // Graceful shutdown solo en desarrollo
+  process.on("SIGTERM", () => {
+    logger.info("SIGTERM received, shutting down gracefully");
+    process.exit(0);
+  });
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM received, shutting down gracefully");
-  process.exit(0);
-});
+  process.on("SIGINT", () => {
+    logger.info("SIGINT received, shutting down gracefully");
+    process.exit(0);
+  });
+}
 
-process.on("SIGINT", () => {
-  logger.info("SIGINT received, shutting down gracefully");
-  process.exit(0);
-});
+// Exportar la app para Vercel
+export { app };
