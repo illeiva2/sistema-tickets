@@ -103,6 +103,32 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Database connection test endpoint
+app.get("/debug/db-connection", async (req, res) => {
+  try {
+    // Test Prisma connection
+    await prisma.$queryRaw`SELECT 1 as test`;
+    
+    res.status(200).json({
+      success: true,
+      message: "✅ Database connection successful",
+      timestamp: new Date().toISOString(),
+      database: "Supabase PostgreSQL",
+      ssl: "enabled"
+    });
+  } catch (error) {
+    logger.error("❌ Database connection failed:", error);
+    res.status(500).json({
+      success: false,
+      message: "❌ Database connection failed",
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+      database: "Supabase PostgreSQL",
+      ssl: "enabled"
+    });
+  }
+});
+
 // Static uploads
 app.use(
   "/uploads",

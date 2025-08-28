@@ -10,7 +10,7 @@ Este monorepo está configurado para hacer deploy de la **API en Render** mientr
 - **Servicio**: `sistema-tickets-api`
 - **Tipo**: Web Service
 - **Plan**: Free
-- **Base de datos**: PostgreSQL (Render)
+- **Base de datos**: PostgreSQL (Supabase)
 
 ### Frontend (Vercel)
 - **URLs**: 
@@ -20,8 +20,8 @@ Este monorepo está configurado para hacer deploy de la **API en Render** mientr
 ## ⚙️ Configuración de Render
 
 ### Variables de Entorno Automáticas
-- `DATABASE_URL`: Inyectada automáticamente por Render
-- `SHADOW_DATABASE_URL`: Para migraciones de Prisma
+- `DATABASE_URL`: Configurada para usar Supabase
+- `SHADOW_DATABASE_URL`: Configurada para usar Supabase
 
 ### Variables de Entorno Manuales
 - `NODE_ENV`: production
@@ -61,8 +61,8 @@ Este monorepo está configurado para hacer deploy de la **API en Render** mientr
 3. Asegúrate de que `FRONTEND_URLS` apunte a tu frontend en Vercel
 
 ### 4. Base de Datos
-- Render creará automáticamente una base de datos PostgreSQL
-- La variable `DATABASE_URL` se inyectará automáticamente
+- Se usa la base de datos PostgreSQL de Supabase
+- Las variables `DATABASE_URL` y `SHADOW_DATABASE_URL` están configuradas en render.yaml
 
 ## 🚨 Consideraciones Importantes
 
@@ -84,7 +84,7 @@ Este monorepo está configurado para hacer deploy de la **API en Render** mientr
 ### Base de Datos
 - Las migraciones de Prisma se ejecutan automáticamente
 - Usa `prisma migrate deploy` en producción
-- La base de datos es persistente entre redeploys
+- La base de datos de Supabase es persistente y accesible desde Render
 
 ## 🔍 Health Check
 
@@ -114,7 +114,7 @@ Response:
 
 - **API**: `https://sistema-tickets-api.onrender.com`
 - **Health Check**: `https://sistema-tickets-api.onrender.com/health`
-- **Base de datos**: Configurada automáticamente
+- **Base de datos**: PostgreSQL en Supabase
 
 ## 🔄 Redeploy
 

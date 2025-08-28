@@ -30,9 +30,9 @@ services:
       - key: LOG_LEVEL
         value: info
       - key: DATABASE_URL
-        value: "postgresql://postgres:7uffg9a9MwDFN3aU@db.ebuzyebupwpbfcgyfozl.supabase.co:5432/postgres"
+        value: "postgresql://postgres:7uffg9a9MwDFN3aU@db.ebuzyebupwpbfcgyfozl.supabase.co:5432/postgres?sslmode=require"
       - key: SHADOW_DATABASE_URL
-        value: "postgresql://postgres:7uffg9a9MwDFN3aU@db.ebuzyebupwpbfcgyfozl.supabase.co:5432/postgres"
+        value: "postgresql://postgres:7uffg9a9MwDFN3aU@db.ebuzyebupwpbfcgyfozl.supabase.co:5432/postgres?sslmode=require"
       # OAuth variables (optional - set these if you want OAuth functionality)
       - key: GOOGLE_CLIENT_ID
         value: ""
