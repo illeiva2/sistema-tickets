@@ -88,6 +88,17 @@ import("./config/oauth")
     logger.error("❌ Failed to load OAuth configuration:", error);
     logger.warn("OAuth features will not work properly");
   });
+// Health check endpoint for Render
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: config.server.nodeEnv,
+    version: process.env.npm_package_version || "1.0.0"
+  });
+});
+
 // Static uploads
 app.use(
   "/uploads",
