@@ -37,13 +37,23 @@ app.use(helmet());
 // CORS configuration - Función personalizada para patrones
 app.use(cors({
   origin: (origin, callback) => {
+    // Permitir requests sin origin (como mobile apps)
     if (!origin) return callback(null, true);
     
-    const isAllowed = config.server.nodeEnv === "production"
-      ? origin.includes("sistema-tickets") && origin.includes("vercel.app")
-      : origin.includes("localhost");
+    // En producción, permitir cualquier dominio de Vercel del proyecto
+    if (config.server.nodeEnv === "production") {
+      if (origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+    }
     
-    callback(null, isAllowed);
+    // En desarrollo, permitir localhost
+    if (origin.includes("localhost")) {
+      return callback(null, true);
+    }
+    
+    // Denegar otros orígenes
+    callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
