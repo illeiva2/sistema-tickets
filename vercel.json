@@ -1,0 +1,20 @@
+{
+  "buildCommand": "cd apps/web && pnpm install && pnpm run build",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "cd apps/web && pnpm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "apps/web/src/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "VITE_API_BASE_URL": "https://sistema-tickets-api.onrender.com"
+  }
+}
