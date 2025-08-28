@@ -62,32 +62,36 @@ app.use(express.urlencoded({ extended: true }));
 // Passport middleware
 app.use(passport.initialize());
 
-// Validate OAuth configuration
-import("./config/oauth")
-  .then(({ validateOAuthConfig, oauthConfig }) => {
-    try {
-      validateOAuthConfig();
-      logger.info("✅ OAuth configuration validated successfully");
-      logger.info("🔍 OAuth Debug Info:");
-      logger.info(
-        "  - Client ID:",
-        oauthConfig.google.clientID ? "✅ Presente" : "❌ FALTANTE",
-      );
-      logger.info(
-        "  - Client Secret:",
-        oauthConfig.google.clientSecret ? "✅ Presente" : "❌ FALTANTE",
-      );
-      logger.info("  - Callback URL:", oauthConfig.google.callbackURL);
-      logger.info("  - Scope:", oauthConfig.google.scope);
-    } catch (error) {
-      logger.error("❌ OAuth configuration validation failed:", error);
+// Validate OAuth configuration (only in development)
+if (config.server.nodeEnv === "development") {
+  import("./config/oauth")
+    .then(({ validateOAuthConfig, oauthConfig }) => {
+      try {
+        validateOAuthConfig();
+        logger.info("✅ OAuth configuration validated successfully");
+        logger.info("🔍 OAuth Debug Info:");
+        logger.info(
+          "  - Client ID:",
+          oauthConfig.google.clientID ? "✅ Presente" : "❌ FALTANTE",
+        );
+        logger.info(
+          "  - Client Secret:",
+          oauthConfig.google.clientSecret ? "✅ Presente" : "❌ FALTANTE",
+        );
+        logger.info("  - Callback URL:", oauthConfig.google.callbackURL);
+        logger.info("  - Scope:", oauthConfig.google.scope);
+      } catch (error) {
+        logger.error("❌ OAuth configuration validation failed:", error);
+        logger.warn("OAuth features will not work properly");
+      }
+    })
+    .catch((error) => {
+      logger.error("❌ Failed to load OAuth configuration:", error);
       logger.warn("OAuth features will not work properly");
-    }
-  })
-  .catch((error) => {
-    logger.error("❌ Failed to load OAuth configuration:", error);
-    logger.warn("OAuth features will not work properly");
-  });
+    });
+} else {
+  logger.info("🚀 Production mode - OAuth validation skipped");
+}
 // Health check endpoint for Render
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -129,18 +133,6 @@ app.get(
 
 // Request ID middleware
 app.use(requestIdMiddleware);
-
-// Health check
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-    },
-  });
-});
 
 // API Routes
 app.use(

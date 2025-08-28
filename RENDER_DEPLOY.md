@@ -32,6 +32,11 @@ Este monorepo está configurado para hacer deploy de la **API en Render** mientr
 - `MAX_FILE_SIZE`: 10485760 (10MB)
 - `LOG_LEVEL`: info
 
+### Variables de Entorno Opcionales (OAuth)
+- `GOOGLE_CLIENT_ID`: Para autenticación con Google (opcional)
+- `GOOGLE_CLIENT_SECRET`: Para autenticación con Google (opcional)
+- `GOOGLE_CALLBACK_URL`: URL de callback para OAuth (opcional)
+
 ## 🔧 Pasos para el Deploy
 
 ### 1. Conectar el Repositorio
@@ -65,6 +70,11 @@ Este monorepo está configurado para hacer deploy de la **API en Render** mientr
 - El build se ejecuta desde `apps/api`
 - Las dependencias se instalan localmente en la carpeta de la API
 - El frontend se mantiene separado en Vercel
+
+### OAuth
+- La autenticación OAuth con Google es **opcional**
+- Si no configuras las variables de OAuth, la aplicación funcionará sin esta funcionalidad
+- Puedes configurar OAuth más tarde agregando las variables de entorno
 
 ### Archivos
 - La carpeta `uploads` se creará automáticamente

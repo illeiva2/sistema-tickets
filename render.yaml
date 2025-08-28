@@ -37,6 +37,13 @@ services:
         fromDatabase:
           name: sistema-tickets-db
           property: connectionString
+      # OAuth variables (optional - set these if you want OAuth functionality)
+      - key: GOOGLE_CLIENT_ID
+        value: ""
+      - key: GOOGLE_CLIENT_SECRET
+        value: ""
+      - key: GOOGLE_CALLBACK_URL
+        value: ""
 
 databases:
   - name: sistema-tickets-db
