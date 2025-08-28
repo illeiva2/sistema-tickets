@@ -25,6 +25,7 @@ import {
 } from "./middleware/fileServing";
 import FileOrganizationController from "./controllers/fileOrganization.controller";
 import { UserRole } from "@prisma/client";
+import { prisma } from "./lib/database";
 
 const app: Application = express();
 
