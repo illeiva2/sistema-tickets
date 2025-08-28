@@ -33,42 +33,23 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
-// CORS configuration - Manejo explícito para Vercel
-app.use((req, res, next) => {
-  const allowedOrigins = config.server.nodeEnv === "production"
-    ? [
-        "https://sistema-tickets-oor1387fb-ivans-projects-73af2e4f.vercel.app",
-        "https://sistema-tickets-1bhs2cjzc-ivans-projects-73af2e4f.vercel.app",
-        "https://sistema-tickets-brgtpd00y-ivans-projects-73af2e4f.vercel.app",
-        "https://sistema-tickets-84chj52je-ivans-projects-73af2e4f.vercel.app",
-        "https://sistema-tickets-e2f2lrx8d-ivans-projects-73af2e4f.vercel.app"
-      ]
-    : [
-        "http://localhost:5173",
-        "http://localhost:3000"
-      ];
 
-  const origin = req.headers.origin;
-  
-  // Permitir origen si está en la lista
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-
-  // Headers CORS estándar
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Request-Id');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 horas
-
-  // Manejar preflight OPTIONS
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  next();
-});
+// CORS configuration - Función personalizada para patrones
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = config.server.nodeEnv === "production"
+      ? origin.includes("sistema-tickets") && origin.includes("vercel.app")
+      : origin.includes("localhost");
+    
+    callback(null, isAllowed);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-Id'],
+  maxAge: 86400
+}));
 
 // Rate limiting (solo en producción)
 if (config.server.nodeEnv === "production") {
