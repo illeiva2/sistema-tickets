@@ -7,8 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@forzani/ui": path.resolve(__dirname, "../../packages/ui/src"),
-      "@forzani/types": path.resolve(__dirname, "../../packages/types/src"),
+      "@forzani/ui": path.resolve(__dirname, "../../packages/ui"),
+      "@forzani/types": path.resolve(__dirname, "../../packages/types"),
     },
   },
   server: {
