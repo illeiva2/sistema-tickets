@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# API app (not needed for web frontend)
+apps/api/
+infra/
+
+# Packages (not needed for web frontend)
+packages/
+
+# Database
+prisma/
+*.db
+*.sqlite
+
+# Uploads and thumbnails
+uploads/
+thumbnails/
+
+# Scripts
+scripts/
