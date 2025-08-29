@@ -1,0 +1,11 @@
+{
+  "name": "@forzani/web",
+  "version": "1.0.0",
+  "description": "Frontend web para el sistema de tickets",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  }
+}
