@@ -1,7 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/web && pnpm install && pnpm run build",
+  "buildCommand": "pnpm install && pnpm run build:web",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install",
-  "framework": null
+  "framework": null,
+  "functions": {
+    "apps/web/dist/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }

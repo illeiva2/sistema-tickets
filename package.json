@@ -6,11 +6,12 @@
   "scripts": {
     "build": "cd apps/api && npm install && npm run build",
     "start": "cd apps/api && npm start",
-    "vercel-build": "cd apps/web && pnpm install && pnpm run build"
+    "vercel-build": "cd apps/web && pnpm install && pnpm run build",
+    "build:web": "cd apps/web && pnpm install && pnpm run build"
   },
   "engines": {
-    "node": "20.x",
-    "pnpm": "8.x"
+    "node": ">=20.0.0",
+    "pnpm": ">=6.0.0"
   },
-  "packageManager": "pnpm@8.x"
+  "packageManager": "pnpm@>=6.0.0"
 }
