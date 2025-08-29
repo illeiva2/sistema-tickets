@@ -1,0 +1,20 @@
+{
+  "name": "@forzani/types",
+  "version": "1.0.0",
+  "description": "Tipos TypeScript compartidos para el sistema de tickets",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@forzani/config": "file:./temp-packages/config",
+    "@types/react": "^18.2.43",
+    "typescript": "^5.3.3"
+  }
+}

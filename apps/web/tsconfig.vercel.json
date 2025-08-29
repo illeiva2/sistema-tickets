@@ -18,8 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@forzani/ui": ["../../packages/ui"],
-      "@forzani/types": ["../../packages/types"]
+      "@forzani/ui": ["./src/components/ui"],
+      "@forzani/types": ["./src/types"]
     }
   },
   "include": ["src"],

@@ -1,48 +1,20 @@
-# Dependencies
-node_modules/
-**/node_modules/
+# Ignorar todo excepto la app web
+*
+!apps/web/
+!apps/web/src/
+!apps/web/public/
+!apps/web/package-vercel-simple.json
+!apps/web/tsconfig.vercel.json
+!apps/web/vite.config.ts
+!apps/web/tailwind.config.js
+!apps/web/postcss.config.js
+!apps/web/index.html
 
-# Build outputs
-dist/
-**/dist/
-build/
-**/build/
-
-# Logs
-*.log
-logs/
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# IDE files
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# API app (not needed for web frontend)
-apps/api/
-infra/
-
-# Allow workspace packages needed for web frontend
-!packages/config/
-!packages/ui/
-!packages/types/
-packages/*
-
-# Database
-prisma/
-*.db
-*.sqlite
-
-# Uploads and thumbnails
-uploads/
-thumbnails/
-
-# Scripts
-scripts/
+# Ignorar archivos específicos de la app web
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.env*
+apps/web/*.log
+apps/web/coverage/
+apps/web/.next/
+apps/web/.vercel/
