@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@forzani/types':
-        specifier: file:../../packages/types
-        version: file:../../packages/types
+        specifier: workspace:*
+        version: link:../../packages/types
       '@forzani/ui':
-        specifier: file:../../packages/ui
-        version: file:../../packages/ui(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: workspace:*
+        version: link:../../packages/ui(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@hookform/resolvers':
         specifier: ^3.3.1
         version: 3.10.0(react-hook-form@7.62.0(react@18.3.1))
@@ -58,8 +58,8 @@ importers:
         version: 3.25.76
     devDependencies:
       '@forzani/config':
-        specifier: file:../../packages/config
-        version: file:../../packages/config(eslint@8.57.1)(prettier@3.6.2)(typescript@5.9.2)
+        specifier: workspace:*
+        version: link:../../packages/config(eslint@8.57.1)(prettier@3.6.2)(typescript@5.9.2)
       '@types/react':
         specifier: ^18.2.21
         version: 18.3.24
@@ -335,17 +335,17 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@forzani/config@file:../../packages/config':
+  '@forzani/config@link:../../packages/config':
     resolution: {directory: ../../packages/config, type: directory}
     peerDependencies:
       eslint: ^8.0.0
       prettier: ^3.0.0
       typescript: ^5.0.0
 
-  '@forzani/types@file:../../packages/types':
+  '@forzani/types@link:../../packages/types':
     resolution: {directory: ../../packages/types, type: directory}
 
-  '@forzani/ui@file:../../packages/ui':
+  '@forzani/ui@link:../../packages/ui':
     resolution: {directory: ../../packages/ui, type: directory}
     peerDependencies:
       react: ^18.0.0
@@ -1712,15 +1712,15 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@forzani/config@file:../../packages/config(eslint@8.57.1)(prettier@3.6.2)(typescript@5.9.2)':
+  '@forzani/config@link:../../packages/config(eslint@8.57.1)(prettier@3.6.2)(typescript@5.9.2)':
     dependencies:
       eslint: 8.57.1
       prettier: 3.6.2
       typescript: 5.9.2
 
-  '@forzani/types@file:../../packages/types': {}
+  '@forzani/types@link:../../packages/types': {}
 
-  '@forzani/ui@file:../../packages/ui(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@forzani/ui@link:../../packages/ui(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       class-variance-authority: 0.7.1
       clsx: 2.1.1
