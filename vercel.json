@@ -1,11 +1,23 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/apps/web/dist/$1"
+    }
+  ],
   "buildCommand": "cd apps/web && npm install && npm run build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "cd apps/web && npm install",
   "framework": null,
-  "functions": {
-    "apps/web/**/*.tsx": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "ignoreCommand": "echo 'Forcing build from apps/web'"
 }
