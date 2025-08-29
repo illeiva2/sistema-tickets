@@ -6,7 +6,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@forzani/ui";
+} from "../ui";
 import {
   Download,
   Eye,

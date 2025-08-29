@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@forzani/ui";
+import { Button } from "../ui";
 import { Upload, X, File, Image, FileText, Code, Archive } from "lucide-react";
 import { useFileUpload, FileUploadOptions } from "../hooks/useFileUpload";
 

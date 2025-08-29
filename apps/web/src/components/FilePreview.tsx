@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Badge } from "@forzani/ui";
+import { Button, Badge } from "../ui";
 import {
   Download,
   Eye,

@@ -1,5 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
-import { Button } from "@forzani/ui";
+import { Button } from "../ui";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface Props {
