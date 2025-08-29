@@ -3,10 +3,5 @@
   "buildCommand": "pnpm install && pnpm run build",
   "outputDirectory": "dist",
   "installCommand": "pnpm install",
-  "framework": null,
-  "functions": {
-    "dist/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  }
+  "framework": null
 }
