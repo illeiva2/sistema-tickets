@@ -6,7 +6,7 @@ import {
   useParams,
   useNavigate,
 } from "react-router-dom";
-import { Button } from "../ui";
+import { Button } from "@forzani/ui";
 import {
   LogOut,
   Ticket,
