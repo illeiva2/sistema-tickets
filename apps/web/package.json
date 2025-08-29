@@ -11,8 +11,8 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@forzani/ui": "file:../../packages/ui",
-    "@forzani/types": "file:../../packages/types",
+    "@forzani/ui": "workspace:*",
+    "@forzani/types": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.18.0",
