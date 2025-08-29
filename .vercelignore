@@ -29,11 +29,11 @@ Thumbs.db
 apps/api/
 infra/
 
-# Packages - allow only config, ui, and types for web frontend
-packages/*
+# Allow workspace packages needed for web frontend
 !packages/config/
 !packages/ui/
 !packages/types/
+packages/*
 
 # Database
 prisma/

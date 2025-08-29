@@ -7,7 +7,7 @@
     "build": "cd apps/api && npm install && npm run build",
     "start": "cd apps/api && npm start",
     "vercel-build": "cd apps/web && pnpm install && pnpm run build",
-    "build:web": "cd apps/web && pnpm install && pnpm run build"
+    "build:web": "cd apps/web && pnpm run build"
   },
   "engines": {
     "node": ">=20.0.0",
