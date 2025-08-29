@@ -15,9 +15,9 @@
       "dest": "/apps/web/dist/$1"
     }
   ],
-  "buildCommand": "cd apps/web && npm install && npm run build",
-  "outputDirectory": "apps/web/dist",
-  "installCommand": "cd apps/web && npm install",
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
   "framework": null,
   "ignoreCommand": "echo 'Forcing build from apps/web'"
 }
