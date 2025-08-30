@@ -326,61 +326,67 @@ async function main() {
     prisma.notificationPreferences.create({
       data: {
         userId: admin.id,
-        emailNotifications: true,
-        pushNotifications: true,
-        ticketUpdates: true,
-        newTickets: true,
-        ticketResolved: true
+        email: true,
+        inApp: true,
+        ticketAssigned: true,
+        statusChanged: true,
+        commentAdded: true,
+        priorityChanged: true
       }
     }),
     prisma.notificationPreferences.create({
       data: {
         userId: agent1.id,
-        emailNotifications: true,
-        pushNotifications: true,
-        ticketUpdates: true,
-        newTickets: true,
-        ticketResolved: true
+        email: true,
+        inApp: true,
+        ticketAssigned: true,
+        statusChanged: true,
+        commentAdded: true,
+        priorityChanged: true
       }
     }),
     prisma.notificationPreferences.create({
       data: {
         userId: agent2.id,
-        emailNotifications: true,
-        pushNotifications: false,
-        ticketUpdates: true,
-        newTickets: true,
-        ticketResolved: true
+        email: true,
+        inApp: false,
+        ticketAssigned: true,
+        statusChanged: true,
+        commentAdded: true,
+        priorityChanged: true
       }
     }),
     prisma.notificationPreferences.create({
       data: {
         userId: user1.id,
-        emailNotifications: false,
-        pushNotifications: true,
-        ticketUpdates: true,
-        newTickets: false,
-        ticketResolved: true
+        email: false,
+        inApp: true,
+        ticketAssigned: false,
+        statusChanged: true,
+        commentAdded: true,
+        priorityChanged: true
       }
     }),
     prisma.notificationPreferences.create({
       data: {
         userId: user2.id,
-        emailNotifications: true,
-        pushNotifications: true,
-        ticketUpdates: true,
-        newTickets: false,
-        ticketResolved: true
+        email: true,
+        inApp: true,
+        ticketAssigned: false,
+        statusChanged: true,
+        commentAdded: true,
+        priorityChanged: true
       }
     }),
     prisma.notificationPreferences.create({
       data: {
         userId: user3.id,
-        emailNotifications: false,
-        pushNotifications: false,
-        ticketUpdates: true,
-        newTickets: false,
-        ticketResolved: true
+        email: false,
+        inApp: false,
+        ticketAssigned: false,
+        statusChanged: true,
+        commentAdded: true,
+        priorityChanged: true
       }
     })
   ]);
