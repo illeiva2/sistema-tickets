@@ -152,7 +152,6 @@ const Layout: React.FC = () => {
   };
 
   const handleChangePassword = () => {
-    setIsUserMenuOpen(false);
     navigate("/change-password");
   };
 
@@ -204,9 +203,11 @@ const Layout: React.FC = () => {
               <NavLink to="/tickets/new" icon={<Plus size={16} />}>
                 Nuevo Ticket
               </NavLink>
-              <NavLink to="/files" icon={<Folder size={16} />}>
-                Archivos
-              </NavLink>
+              {(user?.role === "ADMIN" || user?.role === "AGENT") && (
+                <NavLink to="/files" icon={<Folder size={16} />}>
+                  Archivos
+                </NavLink>
+              )}
               <NavLink to="/notifications" icon={<Mail size={16} />}>
                 Notificaciones
                 {unreadCount > 0 && (

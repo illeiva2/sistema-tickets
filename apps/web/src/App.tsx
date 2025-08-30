@@ -12,7 +12,7 @@ import UsersPage from "./pages/UsersPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute, { RoleProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
@@ -39,8 +39,22 @@ function App() {
             <Route path="tickets/new" element={<NewTicketPage />} />
             <Route path="tickets/:id" element={<TicketDetailPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="files" element={<FileManagementPage />} />
-            <Route path="users" element={<UsersPage />} />
+            <Route 
+              path="files" 
+              element={
+                <RoleProtectedRoute allowedRoles={["ADMIN", "AGENT"]}>
+                  <FileManagementPage />
+                </RoleProtectedRoute>
+              } 
+            />
+            <Route 
+              path="users" 
+              element={
+                <RoleProtectedRoute allowedRoles={["ADMIN"]}>
+                  <UsersPage />
+                </RoleProtectedRoute>
+              } 
+            />
             <Route path="setup-password" element={<SetupPasswordPage />} />
             <Route path="change-password" element={<ChangePasswordPage />} />
           </Route>

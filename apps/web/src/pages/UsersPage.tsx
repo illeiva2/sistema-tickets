@@ -23,6 +23,7 @@ import {
 import { useAuth } from "../hooks";
 import api from "../lib/api";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: string;
@@ -50,14 +51,15 @@ interface UpdateUserData {
   role?: "USER" | "AGENT" | "ADMIN";
 }
 
-const UsersPage: React.FC = () => {
+export const UsersPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,11 +72,6 @@ const UsersPage: React.FC = () => {
   });
 
   const [editForm, setEditForm] = useState<UpdateUserData>({});
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
 
   // Verificar si el usuario actual es ADMIN
   const isAdmin = currentUser?.role === "ADMIN";
@@ -151,43 +148,6 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUser) return;
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("Las contraseñas no coinciden");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const response = await api.patch(
-        `/api/users/${selectedUser.id}/password`,
-        {
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-        },
-      );
-      if (response.data.success) {
-        toast.success("Contraseña actualizada correctamente");
-        setShowPasswordModal(false);
-        setSelectedUser(null);
-        setPasswordForm({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      }
-    } catch (error: any) {
-      const message =
-        error.response?.data?.error?.message || "Error al cambiar contraseña";
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("¿Estás seguro de que quieres eliminar este usuario?")) return;
 
@@ -215,13 +175,42 @@ const UsersPage: React.FC = () => {
   };
 
   const openPasswordModal = (user: User) => {
+    // Si es el usuario actual, redirigir a la página de cambio de contraseña
+    if (user.id === currentUser?.id) {
+      navigate("/change-password");
+      return;
+    }
+    
+    // Si es otro usuario, abrir modal para blanquear contraseña
     setSelectedUser(user);
-    setPasswordForm({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-    setShowPasswordModal(true);
+    setShowResetPasswordModal(true);
+  };
+
+  const openResetPasswordModal = (user: User) => {
+    setSelectedUser(user);
+    setShowResetPasswordModal(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setIsSubmitting(true);
+      const response = await api.post(
+        `/api/users/${selectedUser.id}/reset-password`
+      );
+      if (response.data.success) {
+        toast.success("Contraseña blanqueada correctamente");
+        setShowResetPasswordModal(false);
+        setSelectedUser(null);
+      }
+    } catch (error: any) {
+      const message =
+        error.response?.data?.error?.message || "Error al blanquear contraseña";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getRoleBadge = (role: string) => {
@@ -377,15 +366,27 @@ const UsersPage: React.FC = () => {
                   <Edit size={14} className="mr-1" />
                   Editar
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openPasswordModal(user)}
-                  className="flex-1"
-                >
-                  <Eye size={14} className="mr-1" />
-                  Contraseña
-                </Button>
+                {user.id === currentUser?.id ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openPasswordModal(user)}
+                    className="flex-1"
+                  >
+                    <Eye size={14} className="mr-1" />
+                    Cambiar Contraseña
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openPasswordModal(user)}
+                    className="flex-1"
+                  >
+                    <RefreshCw size={14} className="mr-1" />
+                    Blanquear Contraseña
+                  </Button>
+                )}
                 {user.id !== currentUser?.id && (
                   <Button
                     variant="outline"
@@ -544,81 +545,35 @@ const UsersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Cambiar Contraseña */}
-      {showPasswordModal && selectedUser && (
+      {/* Modal Blanquear Contraseña */}
+      {showResetPasswordModal && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Cambiar Contraseña</h3>
+            <h3 className="text-lg font-semibold mb-4">Blanquear Contraseña</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Cambiando contraseña para: {selectedUser.name}
+              ¿Estás seguro de que quieres blanquear la contraseña de {selectedUser.name}?
             </p>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Contraseña Actual
-                </label>
-                <Input
-                  type="password"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      currentPassword: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Nueva Contraseña
-                </label>
-                <Input
-                  type="password"
-                  value={passwordForm.newPassword}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      newPassword: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Confirmar Nueva Contraseña
-                </label>
-                <Input
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div className="flex space-x-2 pt-4">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  {isSubmitting ? "Cambiando..." : "Cambiar Contraseña"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPasswordModal(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
+            <p className="text-sm text-amber-600 mb-6">
+              El usuario deberá crear una nueva contraseña en su próximo inicio de sesión.
+            </p>
+            <div className="flex space-x-2 pt-4">
+              <Button
+                onClick={handleResetPassword}
+                disabled={isSubmitting}
+                className="flex-1"
+                variant="destructive"
+              >
+                {isSubmitting ? "Blanqueando..." : "Sí, Blanquear"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowResetPasswordModal(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </div>
       )}
