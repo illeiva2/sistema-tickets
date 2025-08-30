@@ -167,6 +167,8 @@ app.use(
   express
     .Router()
     .post("/login", AuthController.login as any)
+    .post("/register", AuthController.register as any)
+    .post("/setup-password", AuthController.setupPassword as any)
     .post("/refresh", AuthController.refreshToken as any)
     .get("/me", authMiddleware, AuthController.me as any),
 );
@@ -217,6 +219,11 @@ app.use(
       "/:id/password",
       authMiddleware,
       UsersController.changePassword as any,
+    )
+    .post(
+      "/:id/reset-password",
+      authMiddleware,
+      UsersController.resetPassword as any,
     )
     .delete("/:id", authMiddleware, UsersController.deleteUser as any)
     .get("/:id/stats", authMiddleware, UsersController.getUserStats as any),

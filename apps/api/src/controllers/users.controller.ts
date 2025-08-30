@@ -265,10 +265,10 @@ export class UsersController {
   ) => {
     try {
       const { id } = req.params;
+      const { currentPassword, newPassword } = req.body;
       const { user } = req;
-      const validatedData = changePasswordSchema.parse(req.body);
 
-      // Solo pueden cambiar su propia contraseña
+      // Solo el usuario puede cambiar su propia contraseña
       if (user?.id !== id) {
         throw new ApiError(
           "FORBIDDEN",
@@ -277,35 +277,81 @@ export class UsersController {
         );
       }
 
-      // Verificar contraseña actual
-      const currentUser = await prisma.user.findUnique({ where: { id } });
-      if (!currentUser) {
+      const dbUser = await prisma.user.findUnique({ where: { id } });
+      if (!dbUser) {
         throw new ApiError("USER_NOT_FOUND", "Usuario no encontrado", 404);
       }
 
-      const isPasswordValid = await bcrypt.compare(
-        validatedData.currentPassword,
-        currentUser.passwordHash,
+      // Verificar contraseña actual
+      const isValidPassword = await bcrypt.compare(
+        currentPassword,
+        dbUser.passwordHash,
       );
-      if (!isPasswordValid) {
-        throw new ApiError(
-          "INVALID_PASSWORD",
-          "Contraseña actual incorrecta",
-          400,
-        );
+      if (!isValidPassword) {
+        throw new ApiError("INVALID_PASSWORD", "Contraseña actual incorrecta", 400);
       }
 
-      // Hash de la nueva contraseña
-      const newPasswordHash = await bcrypt.hash(validatedData.newPassword, 12);
+      // Hashear nueva contraseña
+      const saltRounds = 12;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
+      // Actualizar contraseña
       await prisma.user.update({
         where: { id },
         data: { passwordHash: newPasswordHash },
       });
 
-      res.json({
-        success: true,
-        message: "Contraseña actualizada correctamente",
+      res.json({ success: true, message: "Contraseña actualizada correctamente" });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // Blanquear contraseña de un usuario (solo ADMIN)
+  static resetPassword = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { id } = req.params;
+      const { user } = req;
+
+      // Solo ADMIN puede blanquear contraseñas
+      if (user?.role !== "ADMIN") {
+        throw new ApiError(
+          "FORBIDDEN",
+          "Solo los administradores pueden blanquear contraseñas",
+          403,
+        );
+      }
+
+      // No permitir blanquear la propia contraseña
+      if (user?.id === id) {
+        throw new ApiError(
+          "FORBIDDEN",
+          "No puedes blanquear tu propia contraseña",
+          400,
+        );
+      }
+
+      const dbUser = await prisma.user.findUnique({ where: { id } });
+      if (!dbUser) {
+        throw new ApiError("USER_NOT_FOUND", "Usuario no encontrado", 404);
+      }
+
+      // Blanquear contraseña (establecer mustChangePassword = true)
+      await prisma.user.update({
+        where: { id },
+        data: { 
+          mustChangePassword: true,
+          passwordHash: "", // Contraseña vacía
+        },
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Contraseña blanqueada correctamente. El usuario deberá configurar una nueva contraseña en su próximo inicio de sesión." 
       });
     } catch (err) {
       next(err);

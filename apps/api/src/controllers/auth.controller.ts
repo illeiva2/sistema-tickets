@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/auth.service";
 import { AuthenticatedRequest } from "../middleware/auth";
-import { loginSchema, refreshTokenSchema } from "../validations/auth";
+import { loginSchema, refreshTokenSchema, registerSchema } from "../validations/auth";
 import { validate } from "../middleware/validation";
 import { z } from "zod";
 
@@ -12,6 +12,57 @@ export class AuthController {
       try {
         const { email, password } = req.body;
         const result = await AuthService.login(email, password);
+        
+        res.json({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  ];
+
+  static register = [
+    validate(z.object({ body: registerSchema })),
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { name, email, role, googleAccessToken } = req.body;
+        const result = await AuthService.register(name, email, role, googleAccessToken);
+        
+        res.json({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  ];
+
+  static setupPassword = [
+    validate(z.object({ 
+      body: z.object({
+        newPassword: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+      })
+    })),
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { newPassword } = req.body;
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: {
+              code: "NO_TOKEN",
+              message: "Token de acceso requerido",
+            },
+          });
+        }
+
+        const token = authHeader.substring(7);
+        const result = await AuthService.setupPassword(token, newPassword);
         
         res.json({
           success: true,
