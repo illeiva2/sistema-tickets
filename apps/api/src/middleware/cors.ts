@@ -16,8 +16,9 @@ export const createCorsMiddleware = (): (req: Request, res: Response, next: Next
     const allowedOrigins = config.server.nodeEnv === "production"
       ? [
           ...frontendUrls,
-          // Fallbacks para Vercel
+          // Fallbacks para Vercel - incluir todos los dominios del proyecto
           "https://sistema-tickets-web.vercel.app",
+          "https://sistema-tickets-nu.vercel.app",
           "https://sistema-tickets-web-git-main-ivans-projects-73af2e4f.vercel.app"
         ].filter(Boolean)
       : ["http://localhost:5173", "http://localhost:3000"];
@@ -37,7 +38,7 @@ export const createCorsMiddleware = (): (req: Request, res: Response, next: Next
       // Permitir subdominios de Vercel del proyecto
       if (config.server.nodeEnv === "production" && 
           origin.includes("vercel.app") && 
-          origin.includes("sistema-tickets")) {
+          (origin.includes("sistema-tickets") || origin.includes("sistema-tickets-nu"))) {
         return true;
       }
       
