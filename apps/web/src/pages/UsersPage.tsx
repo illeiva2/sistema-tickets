@@ -186,11 +186,6 @@ export const UsersPage: React.FC = () => {
     setShowResetPasswordModal(true);
   };
 
-  const openResetPasswordModal = (user: User) => {
-    setSelectedUser(user);
-    setShowResetPasswordModal(true);
-  };
-
   const handleResetPassword = async () => {
     if (!selectedUser) return;
 
