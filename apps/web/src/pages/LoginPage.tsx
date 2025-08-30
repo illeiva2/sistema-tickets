@@ -11,7 +11,7 @@ import {
   CardContent,
 } from "@forzani/ui";
 import { useAuth } from "../hooks";
-import { Chrome, Trash2, AlertCircle, Info } from "lucide-react";
+import { Chrome, Trash2, AlertCircle, Info, UserPlus, Mail, Lock } from "lucide-react";
 import { clearAuthData } from "../utils/clearAuth";
 
 const loginSchema = z.object({
@@ -25,6 +25,7 @@ const LoginPage: React.FC = () => {
   const { login, loginWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [showRegisterInfo, setShowRegisterInfo] = useState(false);
   const {
     register,
     handleSubmit,
@@ -56,21 +57,37 @@ const LoginPage: React.FC = () => {
     window.location.reload();
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      setError(null);
+      setIsGoogleUser(false);
+      await loginWithGoogle();
+    } catch (error: any) {
+      setError("Error al iniciar sesión con Google");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">Iniciar Sesión</CardTitle>
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            Accede a tu cuenta o regístrate con Google
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Input
-                {...register("email")}
-                type="email"
-                placeholder="Email"
-                className={errors.email ? "border-red-500" : ""}
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  {...register("email")}
+                  type="email"
+                  placeholder="Email"
+                  className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                />
+              </div>
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.email.message}
@@ -78,12 +95,15 @@ const LoginPage: React.FC = () => {
               )}
             </div>
             <div>
-              <Input
-                {...register("password")}
-                type="password"
-                placeholder="Contraseña"
-                className={errors.password ? "border-red-500" : ""}
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  {...register("password")}
+                  type="password"
+                  placeholder="Contraseña"
+                  className={`pl-10 ${errors.password ? "border-red-500" : ""}`}
+                />
+              </div>
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.password.message}
@@ -151,15 +171,51 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={loginWithGoogle}
-              className="w-full mt-4"
-            >
-              <Chrome className="mr-2 h-4 w-4" />
-              Continuar con Google
-            </Button>
+            <div className="space-y-3 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleLogin}
+                className="w-full"
+              >
+                <Chrome className="mr-2 h-4 w-4" />
+                Continuar con Google
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowRegisterInfo(!showRegisterInfo)}
+                className="w-full"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                ¿Nuevo usuario? Regístrate
+              </Button>
+            </div>
+
+            {/* Información de registro */}
+            {showRegisterInfo && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex items-center gap-2 text-blue-800 mb-2">
+                  <Info className="h-4 w-4" />
+                  <span className="text-sm font-medium">Registro de Usuarios</span>
+                </div>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p>
+                    • El registro solo está disponible para usuarios con dominio corporativo autorizado
+                  </p>
+                  <p>
+                    • Usa &quot;Continuar con Google&quot; para crear tu cuenta
+                  </p>
+                  <p>
+                    • Después del primer login, podrás configurar una contraseña personal
+                  </p>
+                  <p>
+                    • Los usuarios existentes pueden iniciar sesión con email y contraseña
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Debug button - solo en desarrollo */}
             {import.meta.env.DEV && (
