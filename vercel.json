@@ -2,7 +2,5 @@
   "version": 2,
   "buildCommand": "cd apps/web && cp package-vercel-simple.json package.json && pnpm install && pnpm run build",
   "outputDirectory": "apps/web/dist",
-  "installCommand": "cd apps/web && cp package-vercel-simple.json package.json && pnpm install",
-  "framework": null,
-  "functions": {}
+  "installCommand": "cd apps/web && cp package-vercel-simple.json package.json && pnpm install"
 }
