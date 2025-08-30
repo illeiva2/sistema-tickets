@@ -21,11 +21,12 @@ Los componentes UI y tipos se han copiado localmente a:
 
 ## Proceso de build
 
-1. Vercel cambia al directorio `apps/web`
-2. Copia `package-vercel-simple.json` a `package.json`
-3. Instala las dependencias con `pnpm install`
-4. Ejecuta el build con `pnpm run build`
-5. El output se genera en `apps/web/dist/`
+1. Vercel ejecuta desde el directorio raíz del monorepo
+2. El `buildCommand` cambia al directorio `apps/web`
+3. Copia `package-vercel-simple.json` a `package.json`
+4. Instala las dependencias con `pnpm install`
+5. Ejecuta el build con `pnpm run build`
+6. El output se genera en `apps/web/dist/`
 
 ## Variables de entorno
 
@@ -56,15 +57,26 @@ Si el build falla:
 - Verifica que los archivos de configuración estén correctos
 - Comprueba que no haya referencias a paquetes de workspace
 
+### Error de validación de vercel.json
+
+Si Vercel muestra errores de validación:
+- Asegúrate de que solo uses propiedades válidas
+- No uses `rootDirectory` (no es una propiedad válida)
+- Verifica que la sintaxis JSON sea correcta
+
 ## Desarrollo local
 
 Para probar la configuración localmente:
 
 ```bash
+# Desde el directorio raíz
 cd apps/web
 cp package-vercel-simple.json package.json
 pnpm install
 pnpm run build
+
+# O desde el directorio raíz (simulando Vercel)
+cd apps/web && cp package-vercel-simple.json package.json && pnpm install && pnpm run build
 ```
 
 ## Notas importantes
@@ -73,3 +85,4 @@ pnpm run build
 - Los componentes UI se han copiado localmente para evitar dependencias de workspace
 - El build se optimiza para producción con Vite
 - Se incluyen sourcemaps para debugging
+- Vercel ejecuta desde el directorio raíz, no desde `apps/web`
