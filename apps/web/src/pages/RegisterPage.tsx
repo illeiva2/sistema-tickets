@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button, Input, Card, CardHeader, CardTitle, CardContent } from "@forzani/ui";
-import { Eye, EyeOff, Check, X, User, Mail, Shield } from "lucide-react";
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from "@forzani/ui";
+import { User, Mail, Shield } from "lucide-react";
 import api from "../lib/api";
 import toast from "react-hot-toast";
 

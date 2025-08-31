@@ -165,7 +165,14 @@ export class AuthService {
         return null;
       }
 
-      const tokenInfo = await response.json();
+      const tokenInfo = await response.json() as {
+        aud?: string;
+        sub?: string;
+        email?: string;
+        email_verified?: boolean;
+        name?: string;
+        picture?: string;
+      };
       
       // Verificar que el token sea para nuestra aplicación
       if (tokenInfo.aud !== process.env.GOOGLE_CLIENT_ID) {
