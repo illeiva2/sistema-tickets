@@ -13,6 +13,7 @@ import UsersPage from "./pages/UsersPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
+import OAuthHandler from "./components/OAuthHandler";
 import ProtectedRoute, { RoleProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -36,7 +37,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<DashboardPage />} />
+            <Route index element={<OAuthHandler />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="tickets" element={<TicketsPage />} />
             <Route path="tickets/new" element={<NewTicketPage />} />
             <Route path="tickets/:id" element={<TicketDetailPage />} />
