@@ -50,16 +50,29 @@ export const useAuth = (): AuthContextType => {
           const meUser: User = response.data.data.user;
           setUser(meUser);
           localStorage.setItem("user", JSON.stringify(meUser));
+          
+          // Verificar si debe cambiar contraseña
           if (meUser.mustChangePassword) {
             navigate("/setup-password");
             return;
           }
-        } catch (error) {
+        } catch (error: any) {
+          console.log("Token inválido o expirado, limpiando sesión:", error.response?.status);
+          
           // Token inválido, limpiar localStorage
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
+          setUser(null);
+          
+          // Redirigir al login solo si no estamos ya en la página de login
+          if (window.location.pathname !== "/login") {
+            navigate("/login");
+          }
         }
+      } else {
+        // No hay token, asegurar que el usuario esté en null
+        setUser(null);
       }
       setIsLoading(false);
     };

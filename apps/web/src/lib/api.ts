@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // URL de la API con dominio personalizado
-export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-lw3k2ry25-ivans-projects-73af2e4f.vercel.app";
+export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-api.onrender.com";
 
 // Debug: mostrar la URL que se está usando
 console.log("🔍 DEBUG - API_URL:", API_URL);
@@ -23,42 +23,24 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    // No intentar refresh en endpoints de autenticación
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.url?.includes("/auth/login") &&
-      !originalRequest.url?.includes("/auth/register")
-    ) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) {
-          throw new Error("No refresh token");
-        }
-
-        const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken } = response.data.data;
-        localStorage.setItem("accessToken", accessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+    // Si es un error 401 (no autorizado), limpiar la sesión
+    if (error.response?.status === 401) {
+      console.log("🔐 Error 401 detectado, limpiando sesión");
+      
+      // Limpiar localStorage
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      
+      // Solo redirigir si no estamos en páginas de autenticación
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes("/login") && !currentPath.includes("/register") && !currentPath.includes("/oauth")) {
+        console.log("🔄 Redirigiendo a login desde:", currentPath);
         window.location.href = "/login";
-        return Promise.reject(refreshError);
       }
     }
 
