@@ -29,6 +29,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/oauth" element={<OAuthHandler />} />
           <Route
             path="/"
             element={
@@ -39,7 +40,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<OAuthHandler />} />
+            <Route index element={<DashboardPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="tickets" element={<TicketsPage />} />
             <Route path="tickets/new" element={<NewTicketPage />} />
