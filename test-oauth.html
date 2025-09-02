@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test OAuth Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            background: #ffe7e7;
+            border: 1px solid #ffb3b3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #e7ffe7;
+            border: 1px solid #b3ffb3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test OAuth Flow - Sistema de Tickets</h1>
+        
+        <div class="info">
+            <h3>📋 Información del Test</h3>
+            <p>Este archivo simula el flujo de OAuth de Google para probar que el frontend maneje correctamente los parámetros de autenticación.</p>
+        </div>
+
+        <h3>🔐 Simular OAuth Callback</h3>
+        <p>Haz clic en uno de los botones para simular diferentes escenarios de OAuth:</p>
+
+        <button class="test-button" onclick="testExistingUser()">
+            👤 Usuario Existente (con refreshToken)
+        </button>
+
+        <button class="test-button" onclick="testNewUser()">
+            🆕 Usuario Nuevo (sin refreshToken)
+        </button>
+
+        <button class="test-button" onclick="testInvalidParams()">
+            ❌ Parámetros Inválidos
+        </button>
+
+        <div id="results"></div>
+
+        <div class="info">
+            <h3>📱 Cómo Usar</h3>
+            <ol>
+                <li>Haz clic en uno de los botones de prueba</li>
+                <li>Se abrirá una nueva pestaña con el frontend</li>
+                <li>Verifica que el OAuthHandler procese correctamente los parámetros</li>
+                <li>Revisa la consola del navegador para ver los logs</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>🔍 Verificación</h3>
+            <p>En el frontend deberías ver:</p>
+            <ul>
+                <li>El componente OAuthDebug (en desarrollo)</li>
+                <li>Logs en la consola del navegador</li>
+                <li>Redirección correcta según el tipo de usuario</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function testExistingUser() {
+            const params = {
+                accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItaWQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Njc3ODgyMSwiZXhwIjoxNzU2Nzc5NzIxfQ.test-signature',
+                refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItaWQiLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc1Njc3ODgyMSwiZXhwIjoxNzU3MzgzNjIxfQ.test-refresh-signature',
+                user: encodeURIComponent(JSON.stringify({
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Usuario de Prueba',
+                    role: 'USER'
+                }))
+            };
+
+            const url = `https://sistema-tickets-nu.vercel.app/?${new URLSearchParams(params)}`;
+            window.open(url, '_blank');
+            
+            showResults('Usuario Existente', params, url);
+        }
+
+        function testNewUser() {
+            const params = {
+                accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJuZXctdXNlci1pZCIsImVtYWlsIjoibmV3dXNlckBleGFtcGxlLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzU2Nzc4ODIxLCJleHAiOjE3NTY3Nzk3MjF9.test-new-signature',
+                user: encodeURIComponent(JSON.stringify({
+                    id: 'new-user-id',
+                    email: 'newuser@example.com',
+                    name: 'Nuevo Usuario',
+                    role: 'USER'
+                }))
+            };
+
+            const url = `https://sistema-tickets-nu.vercel.app/?${new URLSearchParams(params)}`;
+            window.open(url, '_blank');
+            
+            showResults('Usuario Nuevo', params, url);
+        }
+
+        function testInvalidParams() {
+            const params = {
+                accessToken: 'invalid-token',
+                user: 'invalid-user-data'
+            };
+
+            const url = `https://sistema-tickets-nu.vercel.app/?${new URLSearchParams(params)}`;
+            window.open(url, '_blank');
+            
+            showResults('Parámetros Inválidos', params, url);
+        }
+
+        function showResults(testType, params, url) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="success">
+                    <h3>✅ Test Ejecutado: ${testType}</h3>
+                    <p><strong>URL generada:</strong></p>
+                    <pre>${url}</pre>
+                    <p><strong>Parámetros enviados:</strong></p>
+                    <pre>${JSON.stringify(params, null, 2)}</pre>
+                    <p>Se abrió una nueva pestaña con el frontend. Verifica que el OAuthHandler procese correctamente los parámetros.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
