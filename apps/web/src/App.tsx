@@ -14,6 +14,7 @@ import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import OAuthHandler from "./components/OAuthHandler";
+import OAuthDebug from "./components/OAuthDebug";
 import ProtectedRoute, { RoleProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -23,6 +24,7 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
+        <OAuthDebug />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

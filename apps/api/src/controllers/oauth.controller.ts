@@ -54,6 +54,8 @@ export class OAuthController {
         }
 
         try {
+          logger.info("Generando JWT tokens para usuario:", user.email);
+          
           // Generar JWT tokens
           // @ts-ignore - JWT sign type compatibility issue
           const accessToken = jwt.sign(
@@ -76,12 +78,15 @@ export class OAuthController {
             { expiresIn: oauthConfig.jwt.refreshExpiresIn || "7d" },
           );
 
+          logger.info("JWT tokens generados exitosamente");
+
           // Redirigir al frontend con tokens
           const redirectUrl = new URL(
             process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" 
               ? "https://sistema-tickets-nu.vercel.app"
               : "http://localhost:5173"),
           );
+          
           redirectUrl.searchParams.set("accessToken", accessToken);
           redirectUrl.searchParams.set("refreshToken", refreshToken);
           redirectUrl.searchParams.set(
@@ -94,10 +99,14 @@ export class OAuthController {
             }),
           );
 
+          logger.info(`Redirigiendo a: ${redirectUrl.toString()}`);
           logger.info(`User ${user.email} authenticated via Google OAuth`);
-          res.redirect(redirectUrl.toString());
+          
+          // Asegurar que la respuesta se envíe correctamente
+          res.status(302).redirect(redirectUrl.toString());
         } catch (error) {
           logger.error("Error generating JWT tokens:", error);
+          logger.error("Error stack:", error.stack);
           return next(
             new ApiError(
               "TOKEN_GENERATION_FAILED",

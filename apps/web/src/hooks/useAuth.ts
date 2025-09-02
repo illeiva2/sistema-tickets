@@ -126,32 +126,47 @@ export const useAuth = (): AuthContextType => {
     window.location.href = `${api.defaults.baseURL}/api/auth/google`;
   };
 
-  const handleOAuthCallback = (
+  const handleOAuthCallback = async (
     accessToken: string,
     refreshToken: string,
     userData: User,
   ) => {
-    console.log("🔐 handleOAuthCallback ejecutado:");
-    console.log("   userData:", userData);
-    console.log("   mustChangePassword:", userData.mustChangePassword);
-    console.log("   email:", userData.email);
+    try {
+      console.log("🔐 handleOAuthCallback ejecutado:");
+      console.log("   userData:", userData);
+      console.log("   mustChangePassword:", userData.mustChangePassword);
+      console.log("   email:", userData.email);
 
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
-    toast.success("Inicio de sesión con Google exitoso");
+      // Guardar tokens y usuario en localStorage
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      
+      // Actualizar estado del usuario
+      setUser(userData);
+      
+      toast.success("Inicio de sesión con Google exitoso");
 
-    if (userData.mustChangePassword) {
-      console.log(
-        "🎯 Usuario debe cambiar contraseña, redirigiendo a /setup-password",
-      );
-      navigate("/setup-password");
-    } else {
-      console.log(
-        "✅ Usuario no necesita cambiar contraseña, redirigiendo a /",
-      );
-      navigate("/");
+      // Verificar si debe cambiar contraseña
+      if (userData.mustChangePassword) {
+        console.log("🎯 Usuario debe cambiar contraseña, redirigiendo a /setup-password");
+        navigate("/setup-password", { replace: true });
+      } else {
+        console.log("✅ Usuario no necesita cambiar contraseña, redirigiendo a /dashboard");
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (error) {
+      console.error("❌ Error en handleOAuthCallback:", error);
+      toast.error("Error procesando la autenticación de Google");
+      
+      // Limpiar datos de sesión en caso de error
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      setUser(null);
+      
+      // Redirigir al login
+      navigate("/login", { replace: true });
     }
   };
 
