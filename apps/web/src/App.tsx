@@ -14,6 +14,7 @@ import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import OAuthHandler from "./components/OAuthHandler";
+import OAuthWrapper from "./components/OAuthWrapper";
 import OAuthDebug from "./components/OAuthDebug";
 import ProtectedRoute, { RoleProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
@@ -40,7 +41,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<DashboardPage />} />
+            <Route index element={<OAuthWrapper />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="tickets" element={<TicketsPage />} />
             <Route path="tickets/new" element={<NewTicketPage />} />
