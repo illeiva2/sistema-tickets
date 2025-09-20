@@ -7,7 +7,19 @@
     "build": "cd apps/api && pnpm install && pnpm run build",
     "start": "cd apps/api && npm start",
     "vercel-build": "pnpm install && pnpm run build",
-    "build:web": "pnpm run build"
+    "build:web": "pnpm run build",
+    "dev": "concurrently \"pnpm run dev:api\" \"pnpm run dev:web\"",
+    "dev:api": "cd apps/api && pnpm run dev",
+    "dev:web": "cd apps/web && pnpm run dev",
+    "db:up": "docker-compose -f docker-compose.local.yml up -d",
+    "db:down": "docker-compose -f docker-compose.local.yml down",
+    "db:migrate": "cd apps/api && pnpm run db:migrate",
+    "db:seed": "cd apps/api && pnpm run db:seed",
+    "db:studio": "cd apps/api && pnpm run db:studio",
+    "setup:local": "pnpm install && pnpm run db:up && sleep 10 && pnpm run db:migrate && pnpm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   },
   "engines": {
     "node": ">=20.0.0",

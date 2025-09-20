@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// URL de la API con dominio personalizado
-export const API_URL = import.meta.env.VITE_API_URL || "https://sistema-tickets-api.onrender.com";
+// URL de la API - localhost para desarrollo, producción para deploy
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 // Debug: mostrar la URL que se está usando
 console.log("🔍 DEBUG - API_URL:", API_URL);
