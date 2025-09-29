@@ -37,6 +37,10 @@ model User {
   name         String
   role         UserRole @default(USER)
   googleId     String?  @unique
+  lastLoginAt  DateTime?
+  isActive     Boolean  @default(true)
+  emailVerified Boolean @default(false)
+  emailVerifiedAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -48,6 +52,11 @@ model User {
   notifications    Notification[]
   notificationPreferences NotificationPreferences[]
 
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([googleId])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -60,6 +69,10 @@ model Ticket {
   priority    TicketPriority @default(MEDIUM)
   requesterId String
   assigneeId  String?
+  dueDate     DateTime?
+  estimatedHours Int?
+  actualHours Int?
+  tags        String[]     @default([])
   closedAt    DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -70,6 +83,13 @@ model Ticket {
   comments    Comment[]
   attachments Attachment[]
 
+  @@index([status, priority])
+  @@index([requesterId, status])
+  @@index([assigneeId, status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([closedAt])
+  @@index([ticketNumber])
   @@map("tickets")
 }
 

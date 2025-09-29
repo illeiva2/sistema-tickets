@@ -32,6 +32,8 @@ export const errorHandler = (error: Error, req: Request, res: Response) => {
       statusCode: error.statusCode,
       url: req.url,
       method: req.method,
+      userAgent: req.get("User-Agent"),
+      ip: req.ip,
     });
 
     return res.status(error.statusCode).json({
@@ -45,7 +47,7 @@ export const errorHandler = (error: Error, req: Request, res: Response) => {
     });
   }
 
-  // Log unexpected errors
+  // Log unexpected errors with more context
   logger.error({
     requestId,
     error: error.name,
@@ -53,14 +55,27 @@ export const errorHandler = (error: Error, req: Request, res: Response) => {
     stack: error.stack,
     url: req.url,
     method: req.method,
+    userAgent: req.get("User-Agent"),
+    ip: req.ip,
+    body: req.method !== "GET" ? req.body : undefined,
+    query: req.query,
+    params: req.params,
+    headers: {
+      "content-type": req.get("Content-Type"),
+      authorization: req.get("Authorization") ? "Bearer ***" : undefined,
+    },
   });
+
+  // En producción, no exponer detalles del error
+  const isProduction = process.env.NODE_ENV === "production";
 
   return res.status(500).json({
     success: false,
     error: {
       code: "INTERNAL_SERVER_ERROR",
-      message: "Error interno del servidor",
+      message: isProduction ? "Error interno del servidor" : error.message,
       requestId,
+      ...(isProduction ? {} : { stack: error.stack }),
     },
   });
 };

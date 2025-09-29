@@ -25,11 +25,42 @@ import {
 } from "./middleware/fileServing";
 import FileOrganizationController from "./controllers/fileOrganization.controller";
 import { UserRole } from "@prisma/client";
+import {
+  securityHeaders,
+  payloadLimiter,
+  detectSuspiciousActivity,
+  apiLimiter,
+  authLimiter,
+} from "./middleware/security";
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware - Configuración avanzada
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    hsts: {
+      maxAge: 31536000, // 1 año
+      includeSubDomains: true,
+      preload: true,
+    },
+    noSniff: true,
+    xssFilter: true,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  }),
+);
 app.use(
   cors({
     origin:
@@ -75,9 +106,33 @@ if (config.server.nodeEnv === "production") {
   app.use(limiter);
 }
 
-// Request parsing
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+// Security headers adicionales
+app.use(securityHeaders);
+
+// Detección de actividad sospechosa
+app.use(detectSuspiciousActivity);
+
+// Rate limiting general
+app.use(apiLimiter);
+
+// Request parsing con límites de seguridad
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, res, buf) => {
+      // Verificar que el JSON es válido
+      try {
+        JSON.parse(buf.toString());
+      } catch (e) {
+        throw new Error("Invalid JSON");
+      }
+    },
+  }),
+);
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Límite de payload
+app.use(payloadLimiter);
 
 // Passport middleware
 app.use(passport.initialize());
@@ -139,16 +194,34 @@ app.get(
 // Request ID middleware
 app.use(requestIdMiddleware);
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-    },
-  });
+// Health check avanzado
+app.get("/health", async (req, res) => {
+  try {
+    const { HealthChecker } = await import("./lib/health");
+    const healthStatus = await HealthChecker.runAllChecks();
+
+    const statusCode =
+      healthStatus.status === "unhealthy"
+        ? 503
+        : healthStatus.status === "degraded"
+          ? 200
+          : 200;
+
+    res.status(statusCode).json({
+      success: healthStatus.status !== "unhealthy",
+      data: healthStatus,
+    });
+  } catch (error) {
+    logger.error("Health check failed:", error);
+    res.status(503).json({
+      success: false,
+      data: {
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        error: "Health check failed",
+      },
+    });
+  }
 });
 
 // API Routes
@@ -156,7 +229,7 @@ app.use(
   "/api/auth",
   express
     .Router()
-    .post("/login", AuthController.login as any)
+    .post("/login", authLimiter, AuthController.login as any)
     .post("/refresh", AuthController.refreshToken as any)
     .get("/me", authMiddleware, AuthController.me as any),
 );
