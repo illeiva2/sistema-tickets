@@ -1,0 +1,74 @@
+# Multi-stage build para API optimizada
+FROM node:18-alpine AS base
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Stage 1: Dependencies
+FROM base AS deps
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
+
+# Instalar pnpm y dependencias
+RUN npm install -g pnpm@8
+RUN pnpm install --frozen-lockfile --prod
+
+# Stage 2: Build
+FROM base AS builder
+WORKDIR /app
+
+# Copiar dependencias
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+
+# Copiar código fuente
+COPY . .
+
+# Generar Prisma client
+RUN cd apps/api && npx prisma generate
+
+# Build de la aplicación
+RUN cd apps/api && npm run build
+
+# Stage 3: Production
+FROM base AS runner
+WORKDIR /app
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Crear directorio de uploads
+RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
+
+# Copiar archivos necesarios
+COPY --from=builder --chown=nodejs:nodejs /app/apps/api/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/apps/api/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/apps/api/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/apps/api/prisma ./prisma
+
+# Cambiar a usuario no-root
+USER nodejs
+
+# Exponer puerto
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Comando de inicio
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]

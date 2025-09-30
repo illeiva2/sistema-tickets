@@ -21,6 +21,23 @@ services:
     networks:
       - empresa-network
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: empresa-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - empresa-network
+
   # API Backend
   api:
     build:
@@ -29,6 +46,9 @@ services:
     container_name: empresa-api
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/empresa_tickets
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
       JWT_SECRET: changeme-in-production
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
@@ -43,6 +63,8 @@ services:
       - api_uploads:/app/uploads
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - empresa-network
@@ -66,6 +88,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
   api_uploads:
 
 networks:

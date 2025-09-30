@@ -5,6 +5,7 @@ import { UserRole } from "@prisma/client";
 import { TicketFilters } from "../validations/tickets";
 import { NotificationsService } from "./notifications.service";
 import FilePreviewService from "./filePreview.service";
+import { CacheService, CachePrefixes, CacheTTL } from "../lib/cache";
 import path from "path";
 
 type StatusLiteral = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
@@ -28,6 +29,16 @@ export class TicketsService {
       sortBy = "createdAt",
       sortDir = "desc",
     } = filters;
+
+    // Crear clave de cache única basada en filtros y usuario
+    const cacheKey = `list:${userId}:${JSON.stringify(filters)}`;
+
+    // Intentar obtener del cache
+    const cached = await CacheService.get(CachePrefixes.TICKET, cacheKey);
+    if (cached) {
+      logger.debug("Tickets retrieved from cache");
+      return cached;
+    }
 
     const where: any = {};
 
@@ -75,7 +86,7 @@ export class TicketsService {
       prisma.ticket.count({ where }),
     ]);
 
-    return {
+    const result = {
       data: tickets,
       pagination: {
         page,
@@ -84,9 +95,27 @@ export class TicketsService {
         totalPages: Math.ceil(total / pageSize),
       },
     };
+
+    // Guardar en cache
+    await CacheService.set(
+      CachePrefixes.TICKET,
+      cacheKey,
+      result,
+      CacheTTL.TICKET,
+    );
+
+    return result;
   }
 
   static async getTicketById(id: string, userId: string, userRole: UserRole) {
+    // Intentar obtener del cache
+    const cacheKey = `detail:${id}:${userId}`;
+    const cached = await CacheService.get(CachePrefixes.TICKET, cacheKey);
+    if (cached) {
+      logger.debug("Ticket detail retrieved from cache");
+      return cached;
+    }
+
     const ticket = await prisma.ticket.findUnique({
       where: { id },
       include: {
@@ -172,6 +201,14 @@ export class TicketsService {
       ticket.attachments = enrichedAttachments;
     }
 
+    // Guardar en cache
+    await CacheService.set(
+      CachePrefixes.TICKET,
+      cacheKey,
+      ticket,
+      CacheTTL.TICKET,
+    );
+
     return ticket;
   }
 
@@ -199,6 +236,10 @@ export class TicketsService {
         actorId: userId,
       },
     });
+
+    // Invalidar cache relacionado
+    await CacheService.delPattern(CachePrefixes.TICKET, `list:*`);
+    await CacheService.delPattern(CachePrefixes.DASHBOARD, "*");
 
     logger.info(`Ticket created: ${ticket.id} by user: ${userId}`);
     return ticket;

@@ -6,6 +6,8 @@ import { config } from "./config";
 import { logger } from "./lib/logger";
 import { errorHandler, notFoundHandler } from "./lib/errors";
 import { requestIdMiddleware } from "./middleware/requestId";
+import { initRedis } from "./lib/cache";
+import { metricsMiddleware, metricsEndpoint, getMetrics } from "./lib/metrics";
 import { AuthController } from "./controllers/auth.controller";
 import { TicketsController } from "./controllers/tickets.controller";
 import { CommentsController } from "./controllers/comments.controller";
@@ -194,6 +196,9 @@ app.get(
 // Request ID middleware
 app.use(requestIdMiddleware);
 
+// Metrics middleware
+app.use(metricsMiddleware);
+
 // Health check avanzado
 app.get("/health", async (req, res) => {
   try {
@@ -221,6 +226,18 @@ app.get("/health", async (req, res) => {
         error: "Health check failed",
       },
     });
+  }
+});
+
+// Metrics endpoint para Prometheus
+app.get(metricsEndpoint, async (req, res) => {
+  try {
+    const metrics = await getMetrics();
+    res.set("Content-Type", "text/plain; version=0.0.4; charset=utf-8");
+    res.send(metrics);
+  } catch (error) {
+    logger.error("Metrics endpoint failed:", error);
+    res.status(500).send("Metrics unavailable");
   }
 });
 
@@ -414,11 +431,25 @@ app.use(errorHandler);
 // Start server
 const PORT = config.server.port;
 
-app.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT}`);
-  logger.info(`📊 Environment: ${config.server.nodeEnv}`);
-  logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
-});
+// Inicializar Redis y luego el servidor
+const startServer = async () => {
+  try {
+    // Inicializar Redis
+    await initRedis();
+
+    app.listen(PORT, () => {
+      logger.info(`🚀 Server running on port ${PORT}`);
+      logger.info(`📊 Environment: ${config.server.nodeEnv}`);
+      logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
+      logger.info(`💾 Redis cache initialized`);
+    });
+  } catch (error) {
+    logger.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Graceful shutdown
 process.on("SIGTERM", () => {

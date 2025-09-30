@@ -1,0 +1,77 @@
+# Multi-stage build para Web optimizada
+FROM node:18-alpine AS base
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Stage 1: Dependencies
+FROM base AS deps
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
+
+# Instalar pnpm y dependencias
+RUN npm install -g pnpm@8
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: Build
+FROM base AS builder
+WORKDIR /app
+
+# Copiar dependencias
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+
+# Copiar código fuente
+COPY . .
+
+# Build de la aplicación
+RUN cd apps/web && npm run build
+
+# Stage 3: Production con Nginx
+FROM nginx:alpine AS runner
+
+# Instalar dependencias adicionales
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copiar archivos build
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+
+# Configuración de Nginx optimizada
+COPY infra/docker/nginx.conf /etc/nginx/nginx.conf
+
+# Crear directorio para logs
+RUN mkdir -p /var/log/nginx && \
+    chown -R nodejs:nodejs /var/log/nginx
+
+# Cambiar a usuario no-root
+USER nodejs
+
+# Exponer puerto
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Comando de inicio
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["nginx", "-g", "daemon off;"]
