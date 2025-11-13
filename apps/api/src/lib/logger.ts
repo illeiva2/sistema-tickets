@@ -18,8 +18,8 @@ const loggerConfig = isDevelopment
     }
   : {
       level: config.logging.level,
-      // En producción (Vercel), usar configuración simple sin transport
-      // Vercel captura console.log automáticamente
+      // En producción, usar configuración simple sin transport
+      // La mayoría de plataformas cloud capturan console.log automáticamente
     };
 
 export const logger = pino(loggerConfig);

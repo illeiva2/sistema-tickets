@@ -7,8 +7,7 @@ export const productionConfig = {
   // Configuración de CORS para producción
   cors: {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://yourdomain.vercel.app',
-      'https://yourdomain.com'
+      process.env.FRONTEND_URLS?.split(',')[0] || 'https://yourdomain.com'
     ],
     credentials: true,
     optionsSuccessStatus: 200
@@ -39,7 +38,7 @@ export const productionConfig = {
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           imgSrc: ["'self'", "data:", "https:"],
           scriptSrc: ["'self'"],
-          connectSrc: ["'self'", "https://api.vercel.app"]
+          connectSrc: ["'self'"]
         }
       },
       hsts: {
@@ -78,13 +77,13 @@ export const productionConfig = {
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ],
-    storage: 'supabase' // Usar Supabase Storage en producción
+    storage: process.env.FILE_STORAGE || 'local' // Configurar con FILE_STORAGE env var
   },
 
   // Configuración de OAuth para producción
   oauth: {
     google: {
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'https://api.yourdomain.vercel.app/auth/google/callback',
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.API_URL || 'https://api.yourdomain.com'}/auth/google/callback`,
       scope: ['profile', 'email']
     }
   },

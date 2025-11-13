@@ -1,17 +1,29 @@
 {
-  "name": "sistema-tickets-render",
+  "name": "sistema-tickets",
   "version": "1.0.0",
-  "description": "Sistema de gestión de tickets para Render.com",
+  "description": "Sistema de gestión de tickets",
   "private": true,
   "scripts": {
-    "build": "cd apps/api && pnpm install && pnpm run build",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "cd apps/api && npm run dev",
+    "dev:web": "cd apps/web && npm run dev",
+    "build": "npm run build:api && npm run build:web",
+    "build:api": "cd apps/api && npm run build",
+    "build:web": "cd apps/web && npm run build",
     "start": "cd apps/api && npm start",
-    "vercel-build": "pnpm install && pnpm run build",
-    "build:web": "pnpm run build"
+    "db:up": "docker-compose -f docker-compose.local.yml up -d",
+    "db:down": "docker-compose -f docker-compose.local.yml down",
+    "db:migrate": "cd apps/api && npm run db:migrate",
+    "db:generate": "cd apps/api && npm run db:generate",
+    "db:seed": "cd apps/api && npm run db:seed",
+    "db:studio": "cd apps/api && npm run db:studio",
+    "install:all": "npm install && cd apps/api && npm install && cd ../web && npm install",
+    "clean": "cd apps/api && npm run clean && cd ../web && npm run clean"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   },
   "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=6.0.0"
-  },
-  "packageManager": "pnpm@>=6.0.0"
+    "node": ">=20.0.0"
+  }
 }

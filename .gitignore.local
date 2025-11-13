@@ -1,0 +1,16 @@
+# Archivos de configuración local
+.env.local
+apps/web/.env.local
+
+# Datos de desarrollo local
+uploads/
+thumbnails/
+*.log
+
+# Docker volumes locales
+postgres_data/
+pgadmin_data/
+
+# Archivos temporales
+.DS_Store
+Thumbs.db

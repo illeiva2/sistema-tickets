@@ -29,7 +29,7 @@ import { prisma } from "./lib/database";
 
 const app: Application = express();
 
-// Trust proxy for Vercel (required for rate limiting to work correctly)
+// Trust proxy (required for rate limiting to work correctly behind reverse proxy)
 app.set('trust proxy', 1);
 
 // Security middleware
@@ -93,7 +93,7 @@ if (config.server.nodeEnv === "development") {
 } else {
   logger.info("🚀 Production mode - OAuth validation skipped");
 }
-// Health check endpoint for Render
+// Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "healthy",
@@ -114,7 +114,7 @@ app.get("/debug/db-connection", async (req, res) => {
       success: true,
       message: "✅ Database connection successful",
       timestamp: new Date().toISOString(),
-      database: "Supabase PostgreSQL",
+      database: "PostgreSQL",
       ssl: "enabled"
     });
   } catch (error) {
@@ -124,7 +124,7 @@ app.get("/debug/db-connection", async (req, res) => {
       message: "❌ Database connection failed",
       error: error instanceof Error ? error.message : "Unknown error",
       timestamp: new Date().toISOString(),
-      database: "Supabase PostgreSQL",
+      database: "PostgreSQL",
       ssl: "enabled"
     });
   }
@@ -346,5 +346,5 @@ process.on("SIGINT", () => {
   process.exit(0);
 });
 
-// Exportar la app para Vercel
+// Exportar la app (para plataformas serverless)
 export { app };

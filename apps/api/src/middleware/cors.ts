@@ -12,11 +12,14 @@ export interface CorsConfig {
 export const createCorsMiddleware = (): (req: Request, res: Response, next: NextFunction) => void => {
   return (req: Request, res: Response, next: NextFunction) => {
     // Obtener orígenes permitidos desde variables de entorno
+    const envOrigins = process.env.FRONTEND_URLS 
+      ? process.env.FRONTEND_URLS.split(',').map(url => url.trim())
+      : [];
+    
     const allowedOrigins = [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://sistema-tickets-nu.vercel.app",
-      "https://sistema-tickets-web.vercel.app", // Mantener por compatibilidad
+      ...envOrigins
     ];
 
     const origin = req.headers.origin;
@@ -30,14 +33,6 @@ export const createCorsMiddleware = (): (req: Request, res: Response, next: Next
     const isAllowed = allowedOrigins.some(allowedOrigin => {
       // Permitir coincidencias exactas
       if (origin === allowedOrigin) return true;
-      
-      // Permitir subdominios de Vercel del proyecto
-      if (config.server.nodeEnv === "production" && 
-          origin.includes("vercel.app") && 
-          (origin.includes("sistema-tickets") || origin.includes("sistema-tickets-nu"))) {
-        return true;
-      }
-      
       return false;
     });
 

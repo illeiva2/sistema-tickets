@@ -103,6 +103,7 @@ prisma/migrations/
 
 # Uploads
 uploads/
+thumbnails/
 
 # Docker
 .dockerignore
